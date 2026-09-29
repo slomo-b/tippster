@@ -1,5 +1,10 @@
+import '@fontsource/outfit/latin-400.css';
+import '@fontsource/outfit/latin-600.css';
+import '@fontsource/outfit/latin-800.css';
+import '@fontsource/jetbrains-mono/latin-400.css';
+import '@fontsource/jetbrains-mono/latin-700.css';
 import { LESSONS, FINGER, FCOL, FNAME, ROWS, WORDS } from './lessons.js';
-import { loadState, saveState, touchStreak, levelFor } from './store.js';
+import { loadState, saveState, touchStreak, levelFor, unlockFor, resumeLesson } from './store.js';
 import { weakKeys, genText, starsFor } from './stats.js';
 import { recordKeystroke, lessonsToGoal, rollingAcc } from './adaptive.js';
 import { sHit, sErr, sLvl, tone } from './audio.js';
@@ -89,7 +94,8 @@ document.addEventListener('keydown', e => {
     errs++; combo = 0;
     window._errAt.add(pos);
     sErr(S); popKey(got, false);
-    document.body.classList.add('shake'); setTimeout(() => document.body.classList.remove('shake'), 250);
+    const m = document.querySelector('main');
+    m.classList.add('shake'); setTimeout(() => m.classList.remove('shake'), 250);
     renderText();
   }
   const mins = (Date.now() - startT) / 60000;
@@ -103,8 +109,8 @@ function finishLesson() {
   const mins = (Date.now() - startT) / 60000, wpm = Math.round((hits / 5) / Math.max(mins, .05)), acc = Math.round(hits / Math.max(1, hits + errs) * 100);
   const st = starsFor(acc, wpm);
   S.stars += st; S.xp += 20 * st + (LESSONS[cur].boss ? 50 : 0);
-  if (cur + 1 > S.unlocked - 1 && cur + 1 < LESSONS.length) S.unlocked = cur + 1;
-  if (S.unlocked < cur + 2 && cur + 1 < LESSONS.length) S.unlocked = cur + 2;
+  S.lessonStars[cur] = Math.max(S.lessonStars[cur] || 0, st);
+  S.unlocked = unlockFor(cur, S.unlocked, LESSONS.length);
   S.history.unshift(`${new Date().toLocaleDateString('de-DE')} L${cur + 1}: ${wpm} WPM, ${acc}%, ${st}⭐`); S.history = S.history.slice(0, 12);
   touchStreak(S); award(acc, wpm);
   save(); updateHUD(); renderLevels(); renderBadges(); renderHeat();
@@ -152,7 +158,7 @@ function renderLevels() {
   LESSONS.forEach((L, i) => {
     const b = document.createElement('button');
     b.className = 'lvl' + (i >= S.unlocked ? ' locked' : '') + (i === cur ? ' current' : '');
-    b.innerHTML = `<b>${i + 1}. ${L.t}</b><span>${L.boss ? '👑 Boss' : '🎮 Übung'} · ${L.keys === 'all' ? 'alle Tasten' : L.keys}</span><div class="stars">${i < S.unlocked ? '⭐' : ''}</div>`;
+    b.innerHTML = `<b>${i + 1}. ${L.t}</b><span>${L.boss ? '👑 Boss' : '🎮 Übung'} · ${L.keys === 'all' ? 'alle Tasten' : L.keys}</span><div class="stars">${S.lessonStars[i] ? '⭐'.repeat(S.lessonStars[i]) : ''}</div>`;
     if (i < S.unlocked) b.onclick = () => startLesson(i);
     el.appendChild(b);
   });
@@ -218,7 +224,7 @@ document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
 });
 document.getElementById('restartBtn').onclick = () => startLesson(cur);
 document.getElementById('skipBtn').onclick = () => {
-  if (cur + 1 < LESSONS.length && cur + 1 >= S.unlocked) S.unlocked = cur + 1;
+  S.unlocked = unlockFor(cur, S.unlocked, LESSONS.length);
   save(); document.getElementById('overlay').style.display = 'none';
   if (cur + 1 < LESSONS.length) startLesson(cur + 1);
 };
@@ -226,4 +232,4 @@ document.getElementById('soundBtn').onclick = () => { S.sound = !S.sound; save()
 document.getElementById('resetBtn').onclick = () => { if (confirm('Wirklich alles löschen?')) { localStorage.removeItem('tippster_v1'); location.reload(); } };
 
 buildKbd(); renderLevels(); renderBadges(); renderHeat();
-startLesson(0); touchStreak(S); updateHUD(); save();
+startLesson(resumeLesson(S.unlocked, LESSONS.length)); updateHUD(); save();
