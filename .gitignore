@@ -4,4 +4,6 @@ src-tauri/target/
 src-tauri/gen/
 *.msi
 *.exe
+*.key
+*.key.pub
 .DS_Store

@@ -9,6 +9,7 @@ import { weakKeys, genText, starsFor } from './stats.js';
 import { recordKeystroke, lessonsToGoal, rollingAcc } from './adaptive.js';
 import { sHit, sErr, sLvl, tone } from './audio.js';
 import { confetti, gsap, levelUpBurst, comboFx, tweenXP, popKeyEl } from './fx.js';
+import { checkForUpdates } from './updater.js';
 
 const S = loadState();
 const save = () => saveState(S);
@@ -233,3 +234,4 @@ document.getElementById('resetBtn').onclick = () => { if (confirm('Wirklich alle
 
 buildKbd(); renderLevels(); renderBadges(); renderHeat();
 startLesson(resumeLesson(S.unlocked, LESSONS.length)); updateHUD(); save();
+checkForUpdates();

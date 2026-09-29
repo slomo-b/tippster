@@ -22,12 +22,21 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' ipc: http://ipc.localhost"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDA1MDFBRDE5OTVEQjYyOTAKUldTUVl0dVZHYTBCQmNPVWpGWTV3VUViQ200bHI1MTR3N1JiMVNLc283YVNVZXZ1R1ljWEVOUkkK",
+      "endpoints": [
+        "https://github.com/DEIN-USER/tippster/releases/latest/download/latest.json"
+      ]
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
