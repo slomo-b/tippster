@@ -9,7 +9,7 @@ export function genText(li, LESSONS, keyStats) {
   if (L.keys !== 'all') pool = L.keys.replace(/ /g, '');
   const allPool = buildWeightedPool(pool, weak).split('');
   let s = '';
-  if (li === 11) { s = L.words.join(' '); }
+  if (L.keys === 'all') { s = L.words.join(' '); }
   else {
     for (let i = 0; i < 3; i++) {
       const a = pool[Math.floor(Math.random() * pool.length)] || 'f';

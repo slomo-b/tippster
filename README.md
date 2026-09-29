@@ -10,6 +10,8 @@
 - **Juice**: Tastatur-Highlight, Key-Pops (GSAP), Screen-Shake, Combo-Popups, Konfetti (canvas-confetti), Web-Audio-Sounds.
 - **Offline** — alle Fonts und Libraries sind gebündelt, kein CDN.
 - **Auto-Update** (signiert) über GitHub Releases.
+- **Fortschritt sichern**: Export/Import als JSON (Stats-Tab).
+- **Barrierefrei**: folgt `prefers-reduced-motion`, Tabs per Tastatur bedienbar, Esc schließt Dialoge.
 
 ## Entwicklung
 
@@ -81,8 +83,17 @@ src/
     updater.js    Auto-Update (nur in Tauri aktiv)
     main.js       UI-Verdrahtung
   css/app.css
-tests/            Vitest (23 Tests)
+tests/            Vitest (29 Tests)
 src-tauri/        Tauri-Shell (Rust, Config, Icons)
+```
+
+## App-Icon neu erzeugen
+
+Das Icon wird aus `icon-source.png` generiert:
+
+```bash
+python make-icon.py                 # erzeugt icon-source.png (1024x1024)
+npx tauri icon icon-source.png      # schreibt src-tauri/icons/*
 ```
 
 ## Quellen / Inspiration

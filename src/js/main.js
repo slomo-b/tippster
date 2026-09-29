@@ -12,7 +12,13 @@ import { confetti, gsap, levelUpBurst, comboFx, tweenXP, popKeyEl } from './fx.j
 import { checkForUpdates } from './updater.js';
 
 const S = loadState();
-const save = () => saveState(S);
+// M2: Schreiben entkoppeln — nicht bei jedem Anschlag JSON.stringify+write.
+let saveTimer = null;
+const saveNow = () => { if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; } saveState(S); };
+const save = () => {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saveTimer = null; saveState(S); }, 400);
+};
 let cur = 0, pos = 0, target = '', startT = 0, errs = 0, hits = 0, combo = 0, maxCombo = 0, done = false;
 window._errAt = new Set();
 
@@ -75,7 +81,7 @@ document.addEventListener('keydown', e => {
   const freeVisible = document.getElementById('view-free').style.display !== 'none';
   if (freeVisible && !learnVisible) return handleFreeKey(e);
   if (!learnVisible) return;
-  if (['Shift','Control','Alt','Meta','CapsLock','Tab'].includes(e.key)) return;
+  if (e.key.length !== 1) return; // nur druckbare Zeichen (Backspace/Escape/Pfeile ausgenommen)
   if (done) return;
   e.preventDefault();
   const exp = target[pos]; const got = e.key;
@@ -194,7 +200,8 @@ function freeRender() {
   });
 }
 function handleFreeKey(e) {
-  if (!fTarget || (e.key.length !== 1 && e.key !== ' ')) return;
+  if (!fTarget || e.key.length !== 1) return;
+  if (fPos >= fTarget.length) fTarget += ' ' + WORDS[Math.floor(Math.random() * WORDS.length)]; // nachfüllen statt überlaufen
   if (e.key === fTarget[fPos]) { fHits++; fPos++; tone(S, 700, .04, 'square', .02); }
   else { fErr++; window._ferr.add(fPos); fPos++; tone(S, 140, .12, 'sawtooth', .04); }
   freeRender();
@@ -210,18 +217,31 @@ document.getElementById('freeStart').onclick = () => {
     document.getElementById('fAcc').textContent = Math.round(fHits / Math.max(1, fHits + fErr) * 100) + '%';
     if (left <= 0) {
       clearInterval(fT);
-      const w = document.getElementById('fWpm').textContent;
-      S.xp += parseInt(w) || 5; touchStreak(S); save(); updateHUD();
-      confetti({ particleCount: 100, spread: 70 });
-      alert(`Zeit um! ${w} WPM — XP kassiert!`);
+      const w = parseInt(document.getElementById('fWpm').textContent) || 0;
+      const acc = fHits / Math.max(1, fHits + fErr);
+      // M7: XP an Leistung koppeln, nicht an rohe WPM; Mindestmenge verhindert Farmen.
+      const earned = fHits >= 20 ? Math.min(w, 120) * acc : 0;
+      S.xp += Math.round(earned);
+      touchStreak(S); saveNow(); updateHUD();
+      if (window.confetti && earned > 0) confetti({ particleCount: 100, spread: 70 });
+      alert(earned > 0
+        ? `Zeit um! ${w} WPM, ${Math.round(acc * 100)}% — +${Math.round(earned)} XP`
+        : 'Zeit um! Zu wenig getippt für XP — 20 Treffer nötig.');
     }
   }, 250);
 };
 document.querySelectorAll('[data-time]').forEach(b => b.onclick = () => { fSecs = parseInt(b.dataset.time); document.getElementById('fTime').textContent = fSecs; });
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
-  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on')); t.classList.add('on');
+  document.querySelectorAll('.tab').forEach(x => { x.classList.remove('on'); x.setAttribute('aria-selected', 'false'); });
+  t.classList.add('on'); t.setAttribute('aria-selected', 'true');
   ['learn','free','stats','quellen'].forEach(v => document.getElementById('view-' + v).style.display = t.dataset.t === v ? 'grid' : 'none');
   if (t.dataset.t === 'stats') { renderHeat(); renderBadges(); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const o = document.getElementById('overlay');
+    if (o.style.display === 'grid') o.style.display = 'none';
+  }
 });
 document.getElementById('restartBtn').onclick = () => startLesson(cur);
 document.getElementById('skipBtn').onclick = () => {
@@ -229,8 +249,32 @@ document.getElementById('skipBtn').onclick = () => {
   save(); document.getElementById('overlay').style.display = 'none';
   if (cur + 1 < LESSONS.length) startLesson(cur + 1);
 };
-document.getElementById('soundBtn').onclick = () => { S.sound = !S.sound; save(); updateHUD(); };
+document.getElementById('soundBtn').onclick = () => { S.sound = !S.sound; saveNow(); updateHUD(); };
 document.getElementById('resetBtn').onclick = () => { if (confirm('Wirklich alles löschen?')) { localStorage.removeItem('tippster_v1'); location.reload(); } };
+// M8: Fortschritt sichern und wiederherstellen
+document.getElementById('exportBtn').onclick = () => {
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `tippster-fortschritt-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+};
+document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
+document.getElementById('importFile').onchange = (ev) => {
+  const file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const data = JSON.parse(rd.result);
+      if (typeof data !== 'object' || data === null || !('keyStats' in data)) throw new Error('kein Tippster-Backup');
+      localStorage.setItem('tippster_v1', JSON.stringify(data));
+      location.reload();
+    } catch (err) { alert('Import fehlgeschlagen: ' + err.message); }
+  };
+  rd.readAsText(file);
+};
+window.addEventListener('beforeunload', saveNow);
 
 buildKbd(); renderLevels(); renderBadges(); renderHeat();
 startLesson(resumeLesson(S.unlocked, LESSONS.length)); updateHUD(); save();

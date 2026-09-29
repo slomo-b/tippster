@@ -72,3 +72,9 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:20px}
 a{color:var(--cyan)}
 .hint{font-size:13px;color:var(--muted)}
 kbd{background:#080c1d;border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:1px 7px;font-family:'JetBrains Mono',monospace}
+/* M4: Barrierefreiheit */
+.tab{font-family:inherit}
+.tab:focus-visible,.btn:focus-visible,.lvl:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}

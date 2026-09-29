@@ -13,7 +13,7 @@ export const LESSONS = [
  {t:'FINAL BOSS: Alles + Sätze 🏆',d:'Echte Sätze mit Shift + Satzzeichen.',keys:'all',words:['Das ist mein Tempo!','Fixe Beute, quasi jung.','Übe fünf Minuten täglich!','Victor jagt zwölf Boxkämpfer.'],boss:true},
 ];
 
-export const FINGER = {'a':'lk','q':'lk','y':'lk','s':'lr','w':'lr','x':'lr','d':'lm','e':'lm','c':'lm','f':'li','r':'li','v':'li','t':'li','g':'li','b':'li','h':'ri','z':'ri','n':'ri','u':'ri','j':'ri','m':'ri','k':'rm','i':'rm',',':'rm','l':'rr','o':'rr','.':'rr','ö':'rk','p':'rk','-':'rk','ä':'rk','ü':'rk','ß':'rk',' ':'t'};
+export const FINGER = {'1':'lk','2':'lr','3':'lm','4':'li','5':'li','6':'ri','7':'ri','8':'rm','9':'rr','0':'rk','a':'lk','q':'lk','y':'lk','s':'lr','w':'lr','x':'lr','d':'lm','e':'lm','c':'lm','f':'li','r':'li','v':'li','t':'li','g':'li','b':'li','h':'ri','z':'ri','n':'ri','u':'ri','j':'ri','m':'ri','k':'rm','i':'rm',',':'rm','l':'rr','o':'rr','.':'rr','ö':'rk','p':'rk','-':'rk','ä':'rk','ü':'rk','ß':'rk',' ':'t'};
 export const FCOL = {li:'var(--f-li)',lm:'var(--f-li)',lr:'var(--f-lr)',lk:'var(--f-lk)',ri:'var(--f-ri)',rm:'var(--f-rm)',rr:'var(--f-rr)',rk:'var(--f-rk)',t:'var(--green)'};
 export const FNAME = {li:'Zeige L',lm:'Mittel L',lr:'Ring L',lk:'Klein L',ri:'Zeige R',rm:'Mittel R',rr:'Ring R',rk:'Klein R',t:'Daumen'};
 export const ROWS = [['1','2','3','4','5','6','7','8','9','0','ß'],['q','w','e','r','t','z','u','i','o','p','ü'],['a','s','d','f','g','h','j','k','l','ö','ä'],['y','x','c','v','b','n','m',',','.','-']];

@@ -21,11 +21,11 @@
 </div></header>
 
 <main>
-<nav class="tabs">
-  <div class="tab on" data-t="learn">🎮 Lernen</div>
-  <div class="tab" data-t="free">⚡ Freies Tippen</div>
-  <div class="tab" data-t="stats">📊 Stats & Badges</div>
-  <div class="tab" data-t="quellen">📚 Quellen</div>
+<nav class="tabs" role="tablist">
+  <button type="button" class="tab on" role="tab" aria-selected="true" data-t="learn">🎮 Lernen</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" data-t="free">⚡ Freies Tippen</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" data-t="stats">📊 Stats & Badges</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" data-t="quellen">📚 Quellen</button>
 </nav>
 
 <!-- LEARN -->
@@ -78,7 +78,12 @@
 <!-- STATS -->
 <section id="view-stats" class="grid" style="display:none">
   <div class="card"><h2>📊 Tasten-Heatmap</h2><p class="sub">Rot = deine Problem-Tasten. Diese trainiert die Tages-Quest automatisch.</p><div class="heat" id="heat"></div>
-  <div style="margin-top:14px;display:flex;gap:8px"><button class="btn warn" id="resetBtn">Alles zurücksetzen</button></div></div>
+  <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn ghost" id="exportBtn">⬇ Exportieren</button>
+    <button class="btn ghost" id="importBtn">⬆ Importieren</button>
+    <input type="file" id="importFile" accept=".json,application/json" hidden>
+    <button class="btn warn" id="resetBtn">Alles zurücksetzen</button>
+  </div></div>
   <div class="card"><h2>🏅 Badges</h2><p class="sub">XP + Streak + Combos + Speed. Alles lokal in deinem Browser gespeichert.</p><div id="badges2"></div><h2>Verlauf</h2><div id="history" class="hint"></div></div>
 </section>
 

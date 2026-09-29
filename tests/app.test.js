@@ -22,4 +22,9 @@ describe('genText', () => {
     const t = genText(0, LESSONS, {});
     expect(t.split('').every(c => 'fj '.includes(c) || LESSONS[0].words.join(' ').includes(c))).toBe(true);
   });
+  test('Final-Boss (keys=all) nutzt die Satzliste, nicht Zufall', () => {
+    const bossIndex = LESSONS.findIndex(l => l.keys === 'all');
+    const t = genText(bossIndex, LESSONS, {});
+    expect(LESSONS[bossIndex].words.some(w => t.includes(w))).toBe(true);
+  });
 });
