@@ -1,6 +1,7 @@
 import { LESSONS, FINGER, FCOL, FNAME, ROWS, WORDS } from './lessons.js';
 import { loadState, saveState, touchStreak, levelFor } from './store.js';
 import { weakKeys, genText, starsFor } from './stats.js';
+import { recordKeystroke, lessonsToGoal, rollingAcc } from './adaptive.js';
 import { sHit, sErr, sLvl, tone } from './audio.js';
 import { confetti, gsap, levelUpBurst, comboFx, tweenXP, popKeyEl } from './fx.js';
 
@@ -23,6 +24,7 @@ function renderText() {
 }
 function startLesson(i) {
   cur = i; pos = 0; errs = 0; hits = 0; combo = 0; maxCombo = 0; done = false; window._errAt = new Set();
+  window._lastKeyT = null;
   startT = Date.now();
   target = genText(i, LESSONS, S.keyStats);
   document.getElementById('lessonTitle').textContent = `Lektion ${i + 1}: ${LESSONS[i].t}`;
@@ -72,15 +74,19 @@ document.addEventListener('keydown', e => {
   e.preventDefault();
   const exp = target[pos]; const got = e.key;
   const k = exp === ' ' ? ' ' : (exp || ' ').toLowerCase();
-  S.keyStats[k] = S.keyStats[k] || { tot: 0, err: 0 }; S.keyStats[k].tot++;
-  if (got === exp) {
+  const now = Date.now();
+  const latency = window._lastKeyT ? now - window._lastKeyT : null;
+  window._lastKeyT = now;
+  const ok = got === exp;
+  recordKeystroke(S.keyStats, k, ok, latency);
+  if (ok) {
     hits++; combo++; maxCombo = Math.max(maxCombo, combo);
     S.xp += 1 + Math.floor(combo / 25);
     sHit(S); popKey(got, true); comboFx(combo);
     pos++;
     if (pos >= target.length) finishLesson(); else renderText();
   } else {
-    errs++; combo = 0; S.keyStats[k].err++;
+    errs++; combo = 0;
     window._errAt.add(pos);
     sErr(S); popKey(got, false);
     document.body.classList.add('shake'); setTimeout(() => document.body.classList.remove('shake'), 250);
@@ -135,9 +141,11 @@ function updateHUD() {
 }
 function updateQuest() {
   const w = weakKeys(S.keyStats);
+  const left = lessonsToGoal(S.keyStats, LESSONS[cur].keys);
+  const prog = left === 0 ? 'Ziel erreicht — nächste Lektion wartet! 🚀' : `noch ~${left} Lektionen bis zum Tasten-Ziel 🎯`;
   document.getElementById('quest').innerHTML = w.length
-    ? `🎯 <b>Tages-Quest:</b> Besiege dein <b style="font-size:20px">„${w[0]}"</b> (${Math.round(S.keyStats[w[0]].err / S.keyStats[w[0]].tot * 100)}% Fehler) — 5 Min reichen!`
-    : `🎯 <b>Tages-Quest:</b> 1 Lektion à 5 Min — Streak sichern! 🦥`;
+    ? `🎯 <b>Tages-Quest:</b> Besiege dein <b style="font-size:20px">„${w[0]}"</b> (${Math.round((1 - rollingAcc(S.keyStats[w[0]])) * 100)}% Fehler, letzte ${S.keyStats[w[0]].recent.length}) — ${prog}`
+    : `🎯 <b>Tages-Quest:</b> 1 Lektion à 5 Min — ${prog} 🦥`;
 }
 function renderLevels() {
   const el = document.getElementById('levels'); el.innerHTML = '';

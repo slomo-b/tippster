@@ -6,6 +6,12 @@ export function loadState() {
     keyStats: S.keyStats || {}, badges: S.badges || [], history: S.history || [],
     streak: S.streak || { count: 0, last: '' }, sound: S.sound !== false
   });
+  // Migration V1 -> V2: rolling-Fenster für Adaptive Engine nachrüsten
+  for (const k of Object.keys(S.keyStats)) {
+    const e = S.keyStats[k];
+    if (!Array.isArray(e.recent)) e.recent = [];
+    if (!Array.isArray(e.lat)) e.lat = [];
+  }
   return S;
 }
 export function saveState(S) { localStorage.setItem(KEY, JSON.stringify(S)); }
