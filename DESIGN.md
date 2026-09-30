@@ -82,7 +82,26 @@ The frame is two rails and a board, never a stack of cards.
 - **List row** — four columns: index, title, tier tag, stars. The current lesson is
   marked by an amber index, not by a coloured bar.
 - **Log line** — bottom-right, max four, icon + text, fades out.
-- **Sheet** — the completion dialog, a plain steel panel, not a floating card.
+- **Result band** (`.result`) — after each line an inline steel panel appears *under the
+  board*, inside the normal flow: title, star row, a three-value stat line, Next level /
+  Same line, and a one-line verdict. It is not a modal; the board stays visible, nothing
+  is trapped, and Enter advances. A modal was deliberately rejected here — a 15-second
+  drill does not need an interruption.
+
+### Derived shades
+
+Fixed shades that belong to the palette and are used only in the states named:
+
+| Value | Use |
+|---|---|
+| `#0A0C0E` | unused cell at the end of a board row |
+| `#1A1113` | lower leaf of a wrong flap |
+| `#26302A` | key cell, after a hit |
+| `#2A1B19` | key cell, after a miss |
+| `#191D21` | locked badge ground |
+| `#F2B455` | primary plate, hover |
+| `#737C84` | scrollbar thumb (3.9:1 on ground) |
+| `#000` | the 1px split rule inside a flap |
 
 ## Motion
 
@@ -101,8 +120,18 @@ level-up. No music, no samples.
 
 ## Browser surfaces
 
-Themed from the palette: `::selection` is amber on ink, scrollbars take `--rule-2`,
-focus rings are 2px amber, and the caret inherits `--paint`.
+Themed from the palette: `::selection` is amber on ink, scrollbars take `#737C84`
+(3.9:1 on the ground), and focus rings are 2px amber. Numerals are always
+`tabular-nums` where columns must align. There is no editable surface in the app —
+input arrives as window-level keystrokes — so no caret is themed.
+
+### Contrast
+
+Measured against the ground each sits on: primary `--paint` 15.5:1, `--paint-2` 11.2:1,
+secondary `--dim` 6.25:1 on ground / 5.61:1 on rail / 4.96:1 on rail-2 / 7.19:1 on ink.
+Trouble is never signalled by low-contrast colour: a wrong flap keeps `--paint-2`
+letters and takes a 2px `--red` rule; a wrong character in a typed line keeps
+`--paint-2` and takes a red underline.
 
 ## What this world refuses
 

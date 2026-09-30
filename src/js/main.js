@@ -173,6 +173,7 @@ function startLesson(i) {
   document.getElementById('lessonTitle').textContent = `${i + 1}. ${LESSONS[i].t}`;
   document.getElementById('lessonMeta').textContent = `${LESSONS[i].boss ? 'boss' : 'drill'} · ${LESSONS[i].keys === 'all' ? 'all keys' : LESSONS[i].keys.split('').join(' ')}`;
   document.getElementById('hint').innerHTML = LESSONS[i].d;
+  document.getElementById('result').hidden = true;
   buildBoard(); paintKeysForLesson(); renderPath(); updateRail(); updateQuest();
 }
 function paintKeysForLesson() {
@@ -192,7 +193,7 @@ function updateQuest() {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { document.getElementById('overlay').hidden = true; return; }
+  if (e.key === 'Enter' && !document.getElementById('result').hidden) { nextLine(); return; }
   const vis = n => !document.getElementById('view-' + n).hidden;
   if (vis('daily')) return dailyKey(e);
   if (vis('free')) return freeKey(e);
@@ -244,23 +245,23 @@ function finishLesson() {
 
   cascade(bCells.slice(0, bText.length));
   const weak = weakKeys(S.keyStats);
-  document.getElementById('sheetTitle').textContent = LESSONS[cur].boss ? 'Boss cleared' : 'Line complete';
-  document.getElementById('sheetWpm').textContent = wpm;
-  document.getElementById('sheetAcc').textContent = acc + '%';
-  document.getElementById('sheetCombo').textContent = maxCombo;
-  document.getElementById('sheetStars').innerHTML = starsRow(st);
-  document.getElementById('sheetStars').className = 'stars';
-  document.getElementById('sheetSay').textContent = weak.length
+  document.getElementById('resultTitle').textContent = LESSONS[cur].boss ? 'Boss cleared' : 'Line complete';
+  document.getElementById('resultStars').innerHTML = starsRow(st);
+  document.getElementById('resultWpm').textContent = wpm;
+  document.getElementById('resultAcc').textContent = acc + '%';
+  document.getElementById('resultCombo').textContent = maxCombo;
+  document.getElementById('resultSay').textContent = weak.length
     ? `Your weakest key is “${weak[0]}” — it will turn up more often next time.`
     : 'A clean line. Nothing to correct.';
-  document.getElementById('overlay').hidden = false;
+  document.getElementById('result').hidden = false;
 }
-document.getElementById('ovNext').onclick = () => {
-  document.getElementById('overlay').hidden = true;
+const nextLine = () => {
+  document.getElementById('result').hidden = true;
   if (cur + 1 < LESSONS.length) startLesson(cur + 1);
 };
-document.getElementById('ovAgain').onclick = () => {
-  document.getElementById('overlay').hidden = true;
+document.getElementById('resNext').onclick = nextLine;
+document.getElementById('resAgain').onclick = () => {
+  document.getElementById('result').hidden = true;
   startLesson(cur);
 };
 
@@ -445,23 +446,40 @@ function finishDaily() {
   log(record ? `new daily best · ${wpm} wpm` : `daily run · ${wpm} wpm`, record ? '#i-trophy' : '#i-daily');
 }
 
-/* ── tabs ──────────────────────────────────────────────────── */
-document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
-  document.querySelectorAll('.tab').forEach(x => { x.classList.remove('on'); x.setAttribute('aria-selected', 'false'); });
-  t.classList.add('on'); t.setAttribute('aria-selected', 'true');
+/* ── tabs: real tablist with roving focus ──────────────────── */
+const tabList = [...document.querySelectorAll('.tab')];
+function selectTab(t) {
+  tabList.forEach(x => {
+    const on = x === t;
+    x.classList.toggle('on', on);
+    x.setAttribute('aria-selected', String(on));
+    x.tabIndex = on ? 0 : -1;
+  });
   ['learn', 'free', 'daily', 'stats', 'quellen'].forEach(v => {
     document.getElementById('view-' + v).hidden = t.dataset.t !== v;
   });
   if (t.dataset.t === 'stats') { renderHeat(); renderBadges(); renderHistory(); }
   if (t.dataset.t === 'daily') { dailyRender(); renderBadges(); }
   if (t.dataset.t === 'learn') { paintWeakness(); updateQuest(); }
+}
+tabList.forEach((t, i) => {
+  t.onclick = () => selectTab(t);
+  t.onkeydown = ev => {
+    if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft' && ev.key !== 'Home' && ev.key !== 'End') return;
+    ev.preventDefault();
+    const n = ev.key === 'Home' ? 0
+      : ev.key === 'End' ? tabList.length - 1
+        : (i + (ev.key === 'ArrowRight' ? 1 : -1) + tabList.length) % tabList.length;
+    selectTab(tabList[n]);
+    tabList[n].focus();
+  };
 });
 
 /* ── controls ──────────────────────────────────────────────── */
 document.getElementById('newLine').onclick = () => startLesson(cur);
 document.getElementById('skipLine').onclick = () => {
   S.unlocked = unlockFor(cur, S.unlocked, LESSONS.length);
-  save(); document.getElementById('overlay').hidden = true;
+  save(); document.getElementById('result').hidden = true;
   if (cur + 1 < LESSONS.length) startLesson(cur + 1);
 };
 document.getElementById('soundBtn').onclick = () => { S.sound = !S.sound; saveNow(); updateRail(); };
@@ -497,5 +515,6 @@ buildKeys();
 renderPath(); renderBadges(); renderHeat(); renderHistory();
 startLesson(resumeLesson(S.unlocked, LESSONS.length));
 updateRail(); paintWeakness(); dailyRender();
+document.getElementById('freeLine').innerHTML = '<span class="todo">Press start — 60 seconds of German practice words</span>';
 save();
 checkForUpdates();

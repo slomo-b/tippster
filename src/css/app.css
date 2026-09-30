@@ -46,10 +46,10 @@ body{
 }
 
 ::selection{background:var(--amber);color:var(--ink)}
-*{scrollbar-color:var(--rule-2) transparent;scrollbar-width:thin}
+*{scrollbar-color:#737C84 transparent;scrollbar-width:thin}
 *::-webkit-scrollbar{width:10px;height:10px}
 *::-webkit-scrollbar-track{background:transparent}
-*::-webkit-scrollbar-thumb{background:var(--rule-2);border:3px solid var(--ground)}
+*::-webkit-scrollbar-thumb{background:#737C84;border:3px solid var(--ground)}
 :focus-visible{outline:2px solid var(--amber);outline-offset:1px}
 
 /* ---------- app frame ---------- */
@@ -138,7 +138,7 @@ body{
   gap:8px;
   transition:color .12s,background .12s;
 }
-.tab:hover{color:var(--paint);background:var(--rail)}
+.tab:hover{color:var(--paint);background:var(--rail-2)}
 .tab[aria-selected="true"]{
   color:var(--ink);
   background:var(--amber);
@@ -158,7 +158,6 @@ body{
   min-width:0;
   display:flex;
   flex-direction:column;
-  gap:12px;
   padding:14px 18px 14px 0;
   overflow-y:auto;
 }
@@ -167,6 +166,13 @@ body{
   padding:14px 0 14px 18px;
   overflow-y:auto;
 }
+/* spacing rhythm: 8 between peers, 20 above a heading, 6 below it */
+.col-main > * + *,
+.col-side > * + *{margin-top:8px}
+.col-main > .head + *,
+.col-side > .head + *{margin-top:6px}
+.col-main > .head:not(:first-child),
+.col-side > .head:not(:first-child){margin-top:20px}
 
 /* ---------- section heads ---------- */
 .head{
@@ -186,10 +192,11 @@ body{
 }
 .head .meta{
   margin-left:auto;
-  font-family:var(--mono);
+  font-family:var(--sans);
   font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
   color:var(--dim);
-  font-variant-numeric:tabular-nums;
 }
 .note{
   margin:8px 0 0;
@@ -240,8 +247,13 @@ body{
   background:#000;opacity:.85;
 }
 .flap.done .half span{color:var(--paint-2)}
-.flap.bad .half span{color:var(--red)}
+/* a wrong leaf carries its state as a rule, not as low-contrast red letters */
+.flap.bad .half span{color:var(--paint-2)}
 .flap.bad .bot{background:#1A1113}
+.flap.bad::before{
+  content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  background:var(--red);z-index:2;
+}
 .flap.live .half span{color:var(--amber)}
 .flap.live::before{
   content:"";position:absolute;left:0;right:0;top:-1px;height:2px;background:var(--amber);z-index:2;
@@ -328,7 +340,7 @@ body{
 .plate.primary{background:var(--amber);color:var(--ink);border-color:var(--amber)}
 .plate.primary:hover{background:#F2B455}
 .plate.quiet{background:none}
-.plate.quiet:hover{background:var(--rail)}
+.plate.quiet:hover{background:var(--rail-2)}
 .plate:disabled{opacity:.4;cursor:not-allowed}
 
 /* ---------- lists (path, badges, heat) ---------- */
@@ -339,14 +351,15 @@ body{
   display:grid;grid-template-columns:26px 1fr auto auto;gap:10px;align-items:center;
   padding:8px 6px;font-family:var(--body);font-size:14px;
 }
-.list button:hover{background:var(--rail)}
+.list button:hover{background:var(--rail-2)}
 .list .no{font-family:var(--mono);font-size:12px;color:var(--dim)}
 .list .tag{font-family:var(--sans);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 .list .st{color:var(--amber);font-size:12px;display:inline-flex;gap:2px;align-items:center}
 .starsvg{width:11px;height:11px;stroke:var(--amber);fill:none;stroke-width:1.7;flex:0 0 11px}
 .starsvg.off{stroke:var(--rule-2)}
-#sheetStars{display:inline-flex;gap:4px}
-#sheetStars .starsvg{width:17px;height:17px;flex-basis:17px}
+#resultStars{display:inline-flex;gap:4px;margin-left:auto}
+#resultStars .starsvg{width:17px;height:17px;flex-basis:17px}
+.head .st{margin-left:auto}
 .list button[aria-current="true"]{background:var(--rail-2)}
 .list button[aria-current="true"] .no{color:var(--amber)}
 .list button[aria-current="true"] span:nth-child(2){color:var(--paint)}
@@ -359,7 +372,7 @@ body{
   display:flex;align-items:center;gap:7px;color:var(--paint-2);
 }
 .badge svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.6;flex:0 0 13px}
-.badge.locked{color:#5D656C;background:#191D21}
+.badge.locked{color:var(--dim);background:#191D21}
 .badge.locked svg{opacity:.5}
 
 .heat{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule)}
@@ -402,32 +415,16 @@ body{
   border:1px solid var(--rule-2);background:var(--ink);
   padding:14px;min-height:120px;
 }
-.line .todo{color:#6B7278}
+.line .todo{color:var(--dim)}
 .line .ok{color:var(--paint)}
-.line .bad{color:var(--red)}
+.line .bad{color:var(--paint-2);border-bottom:2px solid var(--red)}
 .line .cur{background:var(--amber);color:var(--ink)}
 
-/* ---------- overlay ---------- */
-.overlay{
-  position:fixed;inset:0;z-index:60;background:rgba(10,12,14,.9);
-  display:grid;place-items:center;padding:24px;
-}
-.overlay[hidden]{display:none}
-.sheet{
-  background:var(--rail);border:1px solid var(--rule-2);padding:26px 28px;
-  max-width:560px;width:100%;
-}
-.sheet h1{
-  margin:0 0 4px;font-family:var(--sans);font-size:24px;
-  letter-spacing:.14em;text-transform:uppercase;
-}
-.sheet .verdict{
-  font-family:var(--mono);font-size:13px;color:var(--dim);
-  display:flex;gap:18px;flex-wrap:wrap;margin:12px 0;
-}
-.sheet .verdict b{color:var(--paint);font-weight:700}
-.sheet .say{color:var(--dim);font-size:13.5px}
-.sheet .controls{margin-top:18px}
+/* ---------- result band (inline, never a modal) ---------- */
+.result{border:1px solid var(--amber);background:var(--rail);padding:12px 14px}
+.result .head{border-bottom-color:var(--rule)}
+.result .stat-line{border-top-color:var(--rule)}
+.result .note{margin-top:8px}
 
 /* ---------- level banner ---------- */
 .banner{
@@ -466,7 +463,7 @@ footer{
 .docs{display:flex;flex-direction:column;gap:2px}
 .docs a{color:var(--paint);text-decoration:none;border-bottom:1px solid var(--rule-2);padding:6px 0}
 .docs a:hover{border-bottom-color:var(--amber);color:var(--amber)}
-.docs .src{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:6px}
+.docs .src{font-family:var(--sans);font-size:11.5px;color:var(--dim);margin-left:6px}
 
 /* ---------- responsive ---------- */
 @media (max-width:1020px){
