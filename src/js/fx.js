@@ -2,7 +2,7 @@ import confetti from 'canvas-confetti';
 import gsap from 'gsap';
 export { confetti, gsap };
 
-// M4: Nutzerwunsch "weniger Bewegung" respektieren.
+// M4: respect the user's "less motion" preference.
 const REDUCED = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 export { REDUCED };
 
@@ -33,7 +33,7 @@ export function popKeyEl(el, ok) {
   setTimeout(() => el.classList.remove('hit', 'miss'), 220);
 }
 
-// C1: Badge-Toast
+// C1: badge toast
 export function toast(html) {
   const wrap = document.getElementById('toasts');
   if (!wrap) return;
@@ -47,12 +47,12 @@ export function toast(html) {
   }, 3200);
 }
 
-// C4: Level-Up-Feier
+// C4: level-up celebration
 export function celebrateLevel(level) {
   const wrap = document.getElementById('levelup');
   const box = document.getElementById('levelupBox');
   if (!wrap || !box) return;
-  box.innerHTML = `<h1>LEVEL ${level}</h1><p>Weiter so! 🔥</p>`;
+  box.innerHTML = `<h1>LEVEL ${level}</h1><p>Keep going! 🔥</p>`;
   wrap.style.display = 'grid';
   levelUpBurst();
   if (!REDUCED) gsap.fromTo(box, { scale: .6, opacity: 0, rotate: -6 }, { scale: 1, opacity: 1, rotate: 0, duration: .5, ease: 'back.out(2)' });

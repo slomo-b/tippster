@@ -26,7 +26,7 @@ export function genText(li, LESSONS, keyStats) {
 }
 export function starsFor(acc, wpm) { let s = 1; if (acc >= 90) s = 2; if (acc >= 96 && wpm >= 12) s = 3; return s; }
 
-// WPM plausibel halten: synthetisch/instantanes Tippen darf keine Rekorde erzeugen.
+// Keep WPM plausible: synthetic/instant typing must not create records.
 export const MAX_WPM = 250;
 export function clampWpm(w) {
   if (typeof w !== 'number' || Number.isNaN(w) || w < 0) return 0;

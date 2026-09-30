@@ -1,4 +1,4 @@
-// C2: Tages-Challenge (deterministisch pro Datum) + Ghost-Race gegen den Bestwert.
+// C2: daily challenge (deterministic per date) + ghost race against your best.
 export function hashString(s) {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
@@ -16,7 +16,7 @@ export function mulberry32(seed) {
 }
 export function dailySeed(dateStr) { return hashString('tippster-daily-' + dateStr); }
 
-// Gleicher Text für alle am selben Tag — keine Math.random-Abhängigkeit.
+// Same text for everyone on a given day — no Math.random dependency.
 export function dailyText(dateStr, words, count = 45) {
   if (!words || !words.length) return '';
   const rnd = mulberry32(dailySeed(dateStr));
@@ -25,7 +25,7 @@ export function dailyText(dateStr, words, count = 45) {
   return out.join(' ');
 }
 
-// Fortschritt (0..1) eines Ghosts, der mit bestWpm tippt.
+// Progress (0..1) of a ghost typing at bestWpm.
 export function ghostProgress(elapsedMs, bestWpm, targetLen) {
   if (!bestWpm || !targetLen) return 0;
   const chars = bestWpm * 5 * (elapsedMs / 60000);

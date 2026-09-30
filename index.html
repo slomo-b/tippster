@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tippster — 10-Finger spielerisch lernen</title>
+<title>Tippster — learn touch typing the fun way</title>
 <link rel="stylesheet" href="/src/css/app.css">
 </head>
 <body>
@@ -16,48 +16,48 @@
   <div class="logo">⌨️ tipp<span>ster</span></div>
   <div class="xpbox"><div style="display:flex;justify-content:space-between;font-size:13px"><span id="lvlLabel">Level 1</span><span id="xpLabel">0 XP</span></div><div class="xpbar"><div id="xpFill"></div></div></div>
   <div class="pills">
-    <div class="pill" id="streakPill">🔥 0 Tage</div>
+    <div class="pill" id="streakPill">🔥 0 days</div>
     <div class="pill" id="starsPill">⭐ 0</div>
-    <button class="btn ghost" id="soundBtn">🔊 Sound an</button>
+    <button class="btn ghost" id="soundBtn">🔊 Sound on</button>
   </div>
 </div></header>
 
 <main>
 <nav class="tabs" role="tablist">
-  <button type="button" class="tab on" role="tab" aria-selected="true" data-t="learn">🎮 Lernen</button>
-  <button type="button" class="tab" role="tab" aria-selected="false" data-t="free">⚡ Freies Tippen</button>
+  <button type="button" class="tab on" role="tab" aria-selected="true" data-t="learn">🎮 Learn</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" data-t="free">⚡ Free typing</button>
   <button type="button" class="tab" role="tab" aria-selected="false" data-t="daily">🏁 Challenge</button>
   <button type="button" class="tab" role="tab" aria-selected="false" data-t="stats">📊 Stats & Badges</button>
-  <button type="button" class="tab" role="tab" aria-selected="false" data-t="quellen">📚 Quellen</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" data-t="quellen">📚 Sources</button>
 </nav>
 
 <!-- LEARN -->
 <section id="view-learn" class="grid">
   <div class="card">
-    <h2 id="lessonTitle">Lektion 1: F + J — die Fühlpunkte</h2>
-    <p class="sub" id="lessonDesc">Zeige- und Mittelfinger ruhen auf F/J (Noppen!). Nicht schauen!</p>
-    <div class="quest" id="quest">🎯 Tages-Quest lädt…</div>
+    <h2 id="lessonTitle">Lesson 1: F + J — the home bumps</h2>
+    <p class="sub" id="lessonDesc">Index fingers rest on F/J (the little bumps). No peeking!</p>
+    <div class="quest" id="quest">🎯 Daily quest loading…</div>
     <div id="textFlow"></div>
     <div class="statsrow">
       <div class="stat"><b id="sWpm">0</b><span>WPM</span></div>
-      <div class="stat"><b id="sAcc">100%</b><span>Genauigkeit</span></div>
+      <div class="stat"><b id="sAcc">100%</b><span>Accuracy</span></div>
       <div class="stat"><b id="sCombo">0</b><span>Combo</span></div>
-      <div class="stat"><b id="sProg">0%</b><span>Fortschritt</span></div>
+      <div class="stat"><b id="sProg">0%</b><span>Progress</span></div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" id="restartBtn">↻ Neu starten</button>
-      <button class="btn ghost" id="skipBtn">Überspringen (faul 🤫)</button>
+      <button class="btn" id="restartBtn">↻ Restart</button>
+      <button class="btn ghost" id="skipBtn">Skip (lazy 🤫)</button>
     </div>
-    <p class="hint">Tipp: Finger immer zurück auf die <b>Grundreihe ASDF JKLÖ</b>. Daumen = Leertaste. Shift immer mit der <b>Gegenseite</b>!</p>
+    <p class="hint">Tip: fingers always return to the <b>home row ASDF JKLÖ</b>. Thumb = space. Shift always with the <b>opposite hand</b>!</p>
     <div class="kbd" id="kbd"></div>
     <div class="fingers" id="fingers"></div>
   </div>
   <div class="card">
-    <h2>Dein Lernpfad 🗺️</h2>
-    <p class="sub">Didaktik nach Tipp10 + Keybr: 2 neue Tasten pro Step, Fehler-Tasten kommen häufiger (adaptive Intelligenz). Boss alle 4 Level.</p>
+    <h2>Your learning path 🗺️</h2>
+    <p class="sub">Method from Tipp10 + Keybr: 2 new keys per step, your weak keys come up more often (adaptive engine). Boss every 4 levels.</p>
     <div class="levels" id="levels"></div>
-    <h2 style="margin-top:16px">So bleibst du dran (für Faule) 🦥</h2>
-    <p class="sub">• Nur <b>5 Min/Tag</b> reicht für Streak • Fehler sind XP • Boss = Freischalten, nicht Perfektion</p>
+    <h2 style="margin-top:16px">How to actually stick with it (for lazy people) 🦥</h2>
+    <p class="sub">• <b>5 min/day</b> is enough for a streak • mistakes are XP • a boss unlocks the next step, it doesn't demand perfection</p>
     <div id="badges"></div>
   </div>
 </section>
@@ -65,79 +65,80 @@
 <!-- FREE -->
 <section id="view-free" class="grid" style="display:none">
   <div class="card">
-    <h2>⚡ Speed-Test (Monkeytype-Stil)</h2>
-    <p class="sub">60 Sekunden, deutsche Wörter. Perfekt nach den Lektionen.</p>
+    <h2>⚡ Speed test (Monkeytype style)</h2>
+    <p class="sub">60 seconds, German practice words. Great right after a lesson.</p>
     <div style="display:flex;gap:8px;margin-bottom:10px">
       <button class="btn ghost" data-time="30">30s</button>
       <button class="btn ghost" data-time="60">60s</button>
       <button class="btn" id="freeStart">Start</button>
     </div>
     <div id="freeText" style="font-family:'JetBrains Mono',monospace;font-size:22px;line-height:1.9;background:#080c1d;border:1px solid var(--line);border-radius:14px;padding:18px;min-height:140px"></div>
-    <div class="statsrow"><div class="stat"><b id="fWpm">0</b><span>WPM</span></div><div class="stat"><b id="fAcc">100%</b><span>Genauigkeit</span></div><div class="stat"><b id="fTime">60</b><span>Sekunden</span></div></div>
+    <div class="statsrow"><div class="stat"><b id="fWpm">0</b><span>WPM</span></div><div class="stat"><b id="fAcc">100%</b><span>Accuracy</span></div><div class="stat"><b id="fTime">60</b><span>Seconds</span></div></div>
   </div>
-  <div class="card"><h2>Warum das funktioniert</h2><p class="sub">Live-WPM + Genauigkeit (Monkeytype), schwächste Taste wird übergewichtet (Keybr), Streak-Verzeihung (Duolingo). Details unter Quellen.</p><div class="quest">🏆 Fordere dich: 40 WPM + 95% = Speed-Badge. 60 WPM = Ninja.</div></div>
+  <div class="card"><h2>Why this works</h2><p class="sub">Live WPM + accuracy (Monkeytype), your weakest key gets over-weighted (Keybr), streak mercy (Duolingo). Sources below.</p><div class="quest">🏆 Push yourself: 40 WPM + 95% = speed badge. 60 WPM = ninja.</div></div>
 </section>
 
 <!-- DAILY / GHOST -->
 <section id="view-daily" class="grid" style="display:none">
   <div class="card">
-    <h2>🏁 Tages-Challenge</h2>
-    <p class="sub">Gleicher Text für alle, jeden Tag neu (Datum als Seed). Schlag deinen Ghost!</p>
+    <h2>🏁 Daily challenge</h2>
+    <p class="sub">Same text for everyone, fresh every day (the date is the seed). Beat your ghost!</p>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
       <button class="btn" id="dailyStart">Start</button>
-      <span class="hint" id="dailyBest">Bestwert heute: —</span>
+      <span class="hint" id="dailyBest">Today's best: —</span>
     </div>
     <div class="ghosttrack"><div class="ghostfill" id="ghostFill"></div><div class="ghostmark" id="ghostMark">👻</div></div>
     <div id="dailyText"></div>
     <div class="statsrow">
       <div class="stat"><b id="dWpm">0</b><span>WPM</span></div>
-      <div class="stat"><b id="dAcc">100%</b><span>Genauigkeit</span></div>
-      <div class="stat"><b id="dGhost">0</b><span>Ghost-WPM</span></div>
+      <div class="stat"><b id="dAcc">100%</b><span>Accuracy</span></div>
+      <div class="stat"><b id="dGhost">0</b><span>Ghost WPM</span></div>
     </div>
   </div>
   <div class="card">
-    <h2>Ghost-Race 🐇</h2>
-    <p class="sub">Du trittst gegen deinen eigenen Bestwert an — der stärkste lokale Motivator (TypeRacer-Prinzip, ganz ohne Server).</p>
-    <div class="quest" id="dailyQuest">Heute noch nicht gefahren.</div>
+    <h2>Ghost race 🐇</h2>
+    <p class="sub">You race your own personal best — the strongest local motivator there is (TypeRacer principle, no server needed).</p>
+    <div class="quest" id="dailyQuest">Not raced yet today.</div>
     <h2 style="margin-top:16px">Badges</h2>
-    <p class="sub"><span id="badgeCount">0</span> freigeschaltet</p>
+    <p class="sub"><span id="badgeCount">0</span> unlocked</p>
     <div id="badgesDaily"></div>
   </div>
 </section>
 
 <!-- STATS -->
 <section id="view-stats" class="grid" style="display:none">
-  <div class="card"><h2>📊 Tasten-Heatmap</h2><p class="sub">Rot = deine Problem-Tasten. Diese trainiert die Tages-Quest automatisch.</p><div class="heat" id="heat"></div>
+  <div class="card"><h2>📊 Key heatmap</h2><p class="sub">Red = your problem keys. The daily quest trains them automatically.</p><div class="heat" id="heat"></div>
   <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-    <button class="btn ghost" id="exportBtn">⬇ Exportieren</button>
-    <button class="btn ghost" id="importBtn">⬆ Importieren</button>
+    <button class="btn ghost" id="exportBtn">⬇ Export</button>
+    <button class="btn ghost" id="importBtn">⬆ Import</button>
     <input type="file" id="importFile" accept=".json,application/json" hidden>
-    <button class="btn warn" id="resetBtn">Alles zurücksetzen</button>
+    <button class="btn warn" id="resetBtn">Reset everything</button>
   </div></div>
-  <div class="card"><h2>🏅 Badges</h2><p class="sub">XP + Streak + Combos + Speed. Alles lokal in deinem Browser gespeichert.</p><div id="badges2"></div><h2>Verlauf</h2><div id="history" class="hint"></div></div>
+  <div class="card"><h2>🏅 Badges</h2><p class="sub">XP + streak + combos + speed. Everything is stored locally in your app data.</p><div id="badges2"></div><h2>History</h2><div id="history" class="hint"></div></div>
 </section>
 
-<!-- QUELLEN -->
+<!-- SOURCES -->
 <section id="view-quellen" class="grid" style="display:none">
-  <div class="card"><h2>📚 Recherche-Quellen (Top-Repos)</h2>
+  <div class="card"><h2>📚 Sources (top repos)</h2>
   <ul>
-    <li><b>Monkeytype</b> (20.6k★, GPL-3.0) — Live-WPM, Modi, Themes, Leaderboard: <a href="https://github.com/monkeytypegame/monkeytype" target="_blank">github.com/monkeytypegame/monkeytype</a></li>
-    <li><b>Keybr.com</b> (4.7k★, AGPL-3.0) — adaptive Schwachstellen-Übungen, Prognose: <a href="https://github.com/aradzie/keybr.com" target="_blank">github.com/aradzie/keybr.com</a></li>
-    <li><b>Tipp10</b> (DE-Klassiker, Stiftung-Warentest-Sieger) — 20 Lektionen + Fehler-Intelligenz: <a href="https://www.tipp10.com" target="_blank">tipp10.com</a></li>
-    <li><b>Klavaro</b> (GPLv3) — 4-Stufen-Didaktik, layout-unabhängig: <a href="https://klavaro.sourceforge.io" target="_blank">klavaro.sourceforge.io</a></li>
-    <li><b>Eletypes</b> (~500★) — Badges, Heatmap, Challenge-Links: <a href="https://github.com/gamer-ai/eletypes-frontend" target="_blank">eletypes-frontend</a></li>
-    <li><b>TypeRacer</b> — Rennen = stärkster Motivator: <a href="https://play.typeracer.com" target="_blank">play.typeracer.com</a></li>
+    <li><b>Monkeytype</b> (20.6k★, GPL-3.0) — live WPM, modes, themes, leaderboards: <a href="https://github.com/monkeytypegame/monkeytype" target="_blank">github.com/monkeytypegame/monkeytype</a></li>
+    <li><b>Keybr.com</b> (4.7k★, AGPL-3.0) — adaptive weak-key drills and prediction: <a href="https://github.com/aradzie/keybr.com" target="_blank">github.com/aradzie/keybr.com</a></li>
+    <li><b>Tipp10</b> (German classic, Stiftung Warentest winner) — 20 lessons + error intelligence: <a href="https://www.tipp10.com" target="_blank">tipp10.com</a></li>
+    <li><b>Klavaro</b> (GPLv3) — four-stage method, layout independent: <a href="https://klavaro.sourceforge.io" target="_blank">klavaro.sourceforge.io</a></li>
+    <li><b>Eletypes</b> (~500★) — badges, heatmap, challenge links: <a href="https://github.com/gamer-ai/eletypes-frontend" target="_blank">eletypes-frontend</a></li>
+    <li><b>TypeRacer</b> — racing is the strongest motivator: <a href="https://play.typeracer.com" target="_blank">play.typeracer.com</a></li>
   </ul></div>
-  <div class="card"><h2>✨ Effekt-Libraries (CDN, ohne Build)</h2>
+  <div class="card"><h2>✨ Effect stack</h2>
   <ul>
-    <li><b>canvas-confetti 1.9.4</b> — Konfetti bei Level-Up</li>
-    <li><b>GSAP 3.12.5</b> — Key-Pops, Combo, XP-Tween, Overlay</li>
-    <li><b>Web Audio API</b> (0 KB) — Klick/Fehler/Level-Sounds, kein MP3 nötig</li>
+    <li><b>canvas-confetti</b> — confetti on level-up and records</li>
+    <li><b>GSAP</b> — key pops, combo popups, XP tweens, overlays</li>
+    <li><b>Web Audio API</b> (0 KB) — click / error / level sounds, no MP3 needed</li>
+    <li><b>@fontsource</b> — Outfit + JetBrains Mono bundled offline</li>
   </ul>
-  <p class="hint">Didaktik-Reihenfolge QWERTZ: F J → D K → S L → A Ö → G H → Ä → R U → E I → W O → Q P T Z Ü → B N V M C , X . Y → Shift/Zahlen/Satzzeichen.</p></div>
+  <p class="hint">QWERTZ teaching order: F J → D K → S L → A Ö → G H → Ä → R U → E I → W O → Q P T Z Ü → bottom row → Shift/numbers/punctuation.</p></div>
 </section>
 </main>
-<footer>Mit Faulheit gebaut 🦥 — 5 Min/Tag schlägt 2h am Sonntag. Fortschritt wird lokal gespeichert.</footer>
+<footer>Built with laziness 🦥 — 5 min a day beats 2 hours on Sunday. Progress is stored locally.</footer>
 
 <script type="module" src="/src/js/main.js"></script>
 </body>

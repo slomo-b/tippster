@@ -1,4 +1,4 @@
-// Adaptive Engine V2 (Keybr-like): rolling stats pro Taste + Ziel-Prognose.
+// Adaptive engine V2 (Keybr-like): rolling per-key stats + goal prediction.
 export const GOAL = { accuracy: 0.95, latencyMs: 400, minSamples: 20, window: 30 };
 export const BOOST_FACTOR = 4;
 
@@ -38,12 +38,12 @@ export function isMastered(e) {
   return rollingAcc(e) >= GOAL.accuracy && (avgLatency(e) == null || avgLatency(e) <= GOAL.latencyMs);
 }
 
-// Score: Fehlerquote zuerst (rolling), bei Gleichstand langsamere Taste zuerst.
+// Score: error rate first (rolling), then slower key on a tie.
 export function weakestKeys(keyStats, n = 3) {
   return Object.entries(keyStats)
     .filter(([, v]) => v.tot > 4)
     .map(([k, v]) => ({ key: k, errRate: 1 - rollingAcc(v), lat: avgLatency(v) ?? 0 }))
-    .filter(x => x.errRate > 1 - GOAL.accuracy + 0.07) // > ~12% Fehler
+    .filter(x => x.errRate > 1 - GOAL.accuracy + 0.07) // > ~12% errors
     .sort((a, b) => (b.errRate - a.errRate) || (b.lat - a.lat))
     .slice(0, n).map(x => x.key);
 }
@@ -52,7 +52,7 @@ export function buildWeightedPool(pool, weak, factor = BOOST_FACTOR) {
   return pool + weak.join('').repeat(factor);
 }
 
-// Prognose: grob 2 Lektionen pro nicht-gemeisterter Taste im aktiven Set.
+// Prediction: roughly 2 lessons per non-mastered key in the active set.
 export function lessonsToGoal(keyStats, lessonKeys) {
   const keys = lessonKeys === 'all'
     ? Object.keys(keyStats)

@@ -14,7 +14,7 @@ import { ACHIEVEMENTS, TOTAL_ACHIEVEMENTS, evaluate as evaluateAchievements, bui
 import { dailyText, ghostProgress } from './daily.js';
 
 const S = loadState();
-// M2: Schreiben entkoppeln — nicht bei jedem Anschlag JSON.stringify+write.
+  // Duplicate save calls happen often (per keystroke) — debounce the write.
 let saveTimer = null;
 const saveNow = () => { if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; } saveState(S); };
 const save = () => {
@@ -65,7 +65,7 @@ function startLesson(i) {
   window._lastKeyT = null;
   startT = Date.now();
   target = genText(i, LESSONS, S.keyStats);
-  document.getElementById('lessonTitle').textContent = `Lektion ${i + 1}: ${LESSONS[i].t}`;
+  document.getElementById('lessonTitle').textContent = `Lesson ${i + 1}: ${LESSONS[i].t}`;
   document.getElementById('lessonDesc').textContent = LESSONS[i].d;
   renderLevels(); renderText(); updateHUD(); updateQuest();
 }
@@ -82,7 +82,7 @@ function buildKbd() {
     k.appendChild(d);
   });
   const sp = document.createElement('div'); sp.className = 'krow';
-  sp.innerHTML = `<div class="key space" id="k- ">Space<small>Daumen</small></div>`; k.appendChild(sp);
+  sp.innerHTML = `<div class="key space" id="k- ">Space<small>Thumb</small></div>`; k.appendChild(sp);
   const f = document.getElementById('fingers'); f.innerHTML = '';
   ['lk','lr','lm','li','t','ri','rm','rr','rk'].forEach(x => {
     const d = document.createElement('div'); d.className = 'finger'; d.id = 'f-' + x; d.textContent = FNAME[x] || x; f.appendChild(d);
@@ -107,7 +107,7 @@ document.addEventListener('keydown', e => {
   if (visible('daily')) return handleDailyKey(e);
   if (visible('free')) return handleFreeKey(e);
   if (!visible('learn')) return;
-  if (e.key.length !== 1) return; // nur druckbare Zeichen (Backspace/Escape/Pfeile ausgenommen)
+  if (e.key.length !== 1) return; // printable characters only (Backspace/Escape/arrows excluded)
   if (done) return;
   e.preventDefault();
   const exp = target[pos]; const got = e.key;
@@ -145,20 +145,20 @@ function finishLesson() {
   S.stars += st; S.xp += 20 * st + (LESSONS[cur].boss ? 50 : 0);
   S.lessonStars[cur] = Math.max(S.lessonStars[cur] || 0, st);
   S.unlocked = unlockFor(cur, S.unlocked, LESSONS.length);
-  S.history.unshift(`${new Date().toLocaleDateString('de-DE')} L${cur + 1}: ${wpm} WPM, ${acc}%, ${st}⭐`); S.history = S.history.slice(0, 12);
+  S.history.unshift(`${new Date().toLocaleDateString('en-GB')} L${cur + 1}: ${wpm} WPM, ${acc}%, ${st}⭐`); S.history = S.history.slice(0, 12);
   touchStreak(S);
   runAchievements({ wpm, acc, hits, isBoss: !!LESSONS[cur].boss, maxCombo });
   saveNow(); updateHUD(); renderLevels(); renderBadges(); renderHeat();
   celebrateIfLevelUp(lvlBefore);
   const box = document.getElementById('overlayBox');
   const weak = weakKeys(S.keyStats);
-  box.innerHTML = `<h1>${LESSONS[cur].boss ? '👑 BOSS BESIEGT!' : '🎉 Geschafft!'}</h1>
-    <p>${wpm} WPM · ${acc}% Genauigkeit · Max-Combo x${maxCombo}</p>
+  box.innerHTML = `<h1>${LESSONS[cur].boss ? '👑 BOSS DEFEATED!' : '🎉 Done!'}</h1>
+    <p>${wpm} WPM · ${acc}% accuracy · max combo x${maxCombo}</p>
     <p style="font-size:30px">${'⭐'.repeat(st)}${'☆'.repeat(3 - st)}</p>
-    <p class="hint">${weak.length ? 'Deine Wackel-Taste: <b>' + weak[0] + '</b> — kommt morgen öfter dran.' : 'Sauber! Keine Wackel-Taste heute.'}</p>
+    <p class="hint">${weak.length ? 'Your shaky key: <b>' + weak[0] + '</b> — it will show up more often tomorrow.' : 'Clean run! No shaky key today.'}</p>
     <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
-    <button class="btn" id="ovNext">Weiter →</button>
-    <button class="btn ghost" id="ovAgain">Nochmal</button></div>`;
+    <button class="btn" id="ovNext">Next →</button>
+    <button class="btn ghost" id="ovAgain">Again</button></div>`;
   document.getElementById('overlay').style.display = 'grid';
   gsap.fromTo(box, { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .4, ease: 'back.out(1.8)' });
   document.getElementById('ovNext').onclick = () => { document.getElementById('overlay').style.display = 'none'; if (cur + 1 < LESSONS.length) startLesson(cur + 1); };
@@ -167,25 +167,25 @@ function finishLesson() {
 function updateHUD() {
   document.getElementById('lvlLabel').textContent = 'Level ' + levelFor(S.xp);
   document.getElementById('xpLabel').textContent = S.xp + ' XP';
-  document.getElementById('streakPill').textContent = `🔥 ${S.streak.count} Tage`;
+  document.getElementById('streakPill').textContent = `🔥 ${S.streak.count} days`;
   document.getElementById('starsPill').textContent = `⭐ ${S.stars}`;
   tweenXP((S.xp % 150) / 150 * 100);
-  document.getElementById('soundBtn').textContent = S.sound ? '🔊 Sound an' : '🔇 Sound aus';
+  document.getElementById('soundBtn').textContent = S.sound ? '🔊 Sound on' : '🔇 Sound off';
 }
 function updateQuest() {
   const w = weakKeys(S.keyStats);
   const left = lessonsToGoal(S.keyStats, LESSONS[cur].keys);
-  const prog = left === 0 ? 'Ziel erreicht — nächste Lektion wartet! 🚀' : `noch ~${left} Lektionen bis zum Tasten-Ziel 🎯`;
+  const prog = left === 0 ? 'goal reached — next lesson is waiting! 🚀' : `about ${left} lessons to the key goal 🎯`;
   document.getElementById('quest').innerHTML = w.length
-    ? `🎯 <b>Tages-Quest:</b> Besiege dein <b style="font-size:20px">„${w[0]}"</b> (${Math.round((1 - rollingAcc(S.keyStats[w[0]])) * 100)}% Fehler, letzte ${S.keyStats[w[0]].recent.length}) — ${prog}`
-    : `🎯 <b>Tages-Quest:</b> 1 Lektion à 5 Min — ${prog} 🦥`;
+    ? `🎯 <b>Daily quest:</b> beat your <b style="font-size:20px">“${w[0]}”</b> (${Math.round((1 - rollingAcc(S.keyStats[w[0]])) * 100)}% errors, last ${S.keyStats[w[0]].recent.length}) — ${prog}`
+    : `🎯 <b>Daily quest:</b> one 5-minute lesson — ${prog} 🦥`;
 }
 function renderLevels() {
   const el = document.getElementById('levels'); el.innerHTML = '';
   LESSONS.forEach((L, i) => {
     const b = document.createElement('button');
     b.className = 'lvl' + (i >= S.unlocked ? ' locked' : '') + (i === cur ? ' current' : '');
-    b.innerHTML = `<b>${i + 1}. ${L.t}</b><span>${L.boss ? '👑 Boss' : '🎮 Übung'} · ${L.keys === 'all' ? 'alle Tasten' : L.keys}</span><div class="stars">${S.lessonStars[i] ? '⭐'.repeat(S.lessonStars[i]) : ''}</div>`;
+    b.innerHTML = `<b>${i + 1}. ${L.t}</b><span>${L.boss ? '👑 Boss' : '🎮 Drill'} · ${L.keys === 'all' ? 'all keys' : L.keys}</span><div class="stars">${S.lessonStars[i] ? '⭐'.repeat(S.lessonStars[i]) : ''}</div>`;
     if (i < S.unlocked) b.onclick = () => startLesson(i);
     el.appendChild(b);
   });
@@ -226,7 +226,7 @@ function freeRender() {
 }
 function handleFreeKey(e) {
   if (!fTarget || e.key.length !== 1) return;
-  if (fPos >= fTarget.length) fTarget += ' ' + WORDS[Math.floor(Math.random() * WORDS.length)]; // nachfüllen statt überlaufen
+  if (fPos >= fTarget.length) fTarget += ' ' + WORDS[Math.floor(Math.random() * WORDS.length)]; // refill instead of overflowing
   if (e.key === fTarget[fPos]) { fHits++; fPos++; tone(S, 700, .04, 'square', .02); }
   else { fErr++; window._ferr.add(fPos); fPos++; tone(S, 140, .12, 'sawtooth', .04); }
   freeRender();
@@ -244,7 +244,7 @@ document.getElementById('freeStart').onclick = () => {
       clearInterval(fT);
       const w = parseInt(document.getElementById('fWpm').textContent) || 0;
       const acc = fHits / Math.max(1, fHits + fErr);
-      // M7: XP an Leistung koppeln, nicht an rohe WPM; Mindestmenge verhindert Farmen.
+      // M7: tie XP to performance, not raw WPM; a minimum stops farming.
       const earned = fHits >= 20 ? Math.min(w, 120) * acc : 0;
       const lvlBefore = levelFor(S.xp);
       S.xp += Math.round(earned);
@@ -254,25 +254,25 @@ document.getElementById('freeStart').onclick = () => {
       celebrateIfLevelUp(lvlBefore);
       toast(earned > 0
         ? `⏱️ ${w} WPM, ${Math.round(acc * 100)} % — +${Math.round(earned)} XP`
-        : '⏱️ Zu wenig getippt für XP (20 Treffer nötig)');
+        : '⏱️ Not enough typed for XP (20 hits needed)');
     }
   }, 250);
 };
 document.querySelectorAll('[data-time]').forEach(b => b.onclick = () => { fSecs = parseInt(b.dataset.time); document.getElementById('fTime').textContent = fSecs; });
 
-// ---- C2: Tages-Challenge + Ghost-Race ----
+// ---- C2: daily challenge + ghost race ----
 let dTarget = '', dPos = 0, dHits = 0, dErr = 0, dStart = 0, dTimer = null, dRunning = false;
 window._derr = new Set();
 if (!S.daily || S.daily.date !== todayStr()) S.daily = { date: todayStr(), best: 0, last: 0 };
 
 function dailyBestLabel() {
   const el = document.getElementById('dailyBest');
-  if (el) el.textContent = S.daily.best ? `Bestwert heute: ${S.daily.best} WPM` : 'Bestwert heute: —';
+  if (el) el.textContent = S.daily.best ? `Today's best: ${S.daily.best} WPM` : `Today's best: —`;
 }
 function renderDailyText() {
   const el = document.getElementById('dailyText');
   if (!el) return;
-  if (!dTarget) { el.innerHTML = `<span class="todo">Drücke Start — Text für ${todayStr()}</span>`; return; }
+  if (!dTarget) { el.innerHTML = `<span class="todo">Press Start — text for ${todayStr()}</span>`; return; }
   el.innerHTML = '';
   [...dTarget].forEach((c, i) => {
     const sp = document.createElement('span');
@@ -324,8 +324,8 @@ function finishDaily() {
   runAchievements({ wpm, acc, hits: dHits, isBoss: false });
   saveNow(); updateHUD(); renderBadges(); dailyBestLabel(); updateGhost();
   document.getElementById('dailyQuest').innerHTML = isRecord
-    ? `🥇 <b>Neuer Tagesrekord: ${wpm} WPM</b> (${acc} %) — +${earned} XP`
-    : `${wpm} WPM (${acc} %) gegen Ghost ${prevBest} — +${earned} XP`;
+    ? `🥇 <b>New daily record: ${wpm} WPM</b> (${acc} %) — +${earned} XP`
+    : `${wpm} WPM (${acc} %) against ghost ${prevBest} — +${earned} XP`;
   celebrateIfLevelUp(lvlBefore);
   if (isRecord) confetti({ particleCount: 130, spread: 80, origin: { y: .5 } });
 }
@@ -349,13 +349,13 @@ document.getElementById('skipBtn').onclick = () => {
   if (cur + 1 < LESSONS.length) startLesson(cur + 1);
 };
 document.getElementById('soundBtn').onclick = () => { S.sound = !S.sound; saveNow(); updateHUD(); };
-document.getElementById('resetBtn').onclick = () => { if (confirm('Wirklich alles löschen?')) { localStorage.removeItem('tippster_v1'); location.reload(); } };
-// M8: Fortschritt sichern und wiederherstellen
+document.getElementById('resetBtn').onclick = () => { if (confirm('Really wipe all progress?')) { localStorage.removeItem('tippster_v1'); location.reload(); } };
+// M8: export / import progress
 document.getElementById('exportBtn').onclick = () => {
   const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `tippster-fortschritt-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `tippster-progress-${new Date().toISOString().slice(0, 10)}.json`;
   a.click(); URL.revokeObjectURL(a.href);
 };
 document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
@@ -366,10 +366,10 @@ document.getElementById('importFile').onchange = (ev) => {
   rd.onload = () => {
     try {
       const data = JSON.parse(rd.result);
-      if (typeof data !== 'object' || data === null || !('keyStats' in data)) throw new Error('kein Tippster-Backup');
+      if (typeof data !== 'object' || data === null || !('keyStats' in data)) throw new Error('not a Tippster backup');
       localStorage.setItem('tippster_v1', JSON.stringify(data));
       location.reload();
-    } catch (err) { alert('Import fehlgeschlagen: ' + err.message); }
+    } catch (err) { alert('Import failed: ' + err.message); }
   };
   rd.readAsText(file);
 };

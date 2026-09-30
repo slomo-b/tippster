@@ -22,7 +22,7 @@ jobs:
           workspaces: src-tauri
       - run: npm ci
       - run: npm test
-      - name: Tippster bauen und Release anlegen
+      - name: Build Tippster and create the release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -32,6 +32,30 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Tippster ${{ github.ref_name }}'
           releaseBody: |
-            Windows-Installer (.exe / .msi) unten. Die Auto-Update-Signatur wird mitgeliefert.
+            ## Tippster ${{ github.ref_name }}
+
+            Touch typing, but gamified. For lazy sloperators whose typing is the real
+            development bottleneck.
+
+            ### Download
+            - **`Tippster_..._x64-setup.exe`** — Windows installer (recommended, ~5 MB)
+            - **`Tippster_..._x64_en-US.msi`** — Windows MSI for managed installs
+
+            No admin rights needed for the NSIS installer. Runs fully offline —
+            fonts and effects are bundled. Your progress stays on your machine.
+
+            ### Auto-update
+            Installs are signed; Tippster checks this repository for new versions
+            on start and offers to update in place.
+
+            ### What is inside
+            12 lessons that unlock as you go (F J → D K → S L → A Ö → G H → Ä →
+            R U → E I → W O → Q P T Z Ü → bottom row → final boss), an adaptive
+            engine that over-weights your weakest key, XP, streaks, combos,
+            23 badges, boss fights, and a daily challenge with a ghost race
+            against your own best run.
+
+            5 minutes a day is enough. Built on lessons from Monkeytype, Keybr
+            and Tipp10.
           releaseDraft: true
           prerelease: false

@@ -1,109 +1,146 @@
 # ⌨️ Tippster
 
-10-Finger-Tippen spielerisch lernen — als Windows-Desktop-App (Tauri v2) und im Browser.
+**Touch typing, but gamified.** For lazy sloperators who need a more fun way to
+learn typing — because if your typing is the development bottleneck, no amount of
+AI autocomplete will fix your 30 WPM.
+
+Runs as a Windows desktop app (Tauri v2) and in the browser. German QWERTZ layout.
+
+```
+5 minutes a day beats 2 hours on Sunday.
+```
+
+## Why it might actually work on you
+
+- **5-minute sessions.** That is the whole commitment. The streak is designed
+  so a single short lesson keeps it alive.
+- **Your weakest key gets hunted.** Rolling per-key accuracy and latency feed an
+  adaptive engine; the worst key is weighted 4× in the next drill and named in
+  the daily quest.
+- **It plays like something.** XP, levels, combos, 23 badges, boss fights, and a
+  daily challenge where you race a ghost of your own best run.
+- **Mistakes are not punished, they are data.** Errors earn XP too.
 
 ## Features
 
-- **12 didaktische Lektionen** (QWERTZ): `F J → D K → S L → A Ö → G H → Ä → R U → E I → W O → Q P T Z Ü → unten → Final Boss`, inkl. Boss-Fights.
-- **Adaptive Engine**: rolling Genauigkeit (letzte 30 Anschläge) + Latenz pro Taste; schwache Tasten werden **4× übergewichtet** und als Tages-Quest trainiert.
-- **Gamification**: XP, Level, Streak (lokale Zeitzone), Combos, echte Sterne pro Lektion, **23 Badges** in 6 Gruppen, Unlock-Gating.
-- **Tages-Challenge + Ghost-Race**: derselbe Text für alle (Datum als Seed) — du fährst gegen deinen eigenen Bestwert.
-- **Juice**: Tastatur-Highlight, Key-Pops (GSAP), Screen-Shake, Combo-Popups, Badge-Toasts, Level-Up-Feier, Konfetti (canvas-confetti), Web-Audio-Sounds.
-- **Offline** — alle Fonts und Libraries sind gebündelt, kein CDN.
-- **Auto-Update** (signiert) über GitHub Releases.
-- **Fortschritt sichern**: Export/Import als JSON (Stats-Tab).
-- **Barrierefrei**: folgt `prefers-reduced-motion`, Tabs per Tastatur bedienbar, Esc schließt Dialoge.
+- **12 lessons** in a proven order: `F J → D K → S L → A Ö → G H → Ä → R U → E I →
+  W O → Q P T Z Ü → bottom row → final boss`, with boss fights along the way.
+- **Adaptive engine** — rolling accuracy (last 30 keystrokes) + per-key latency,
+  weakest keys over-weighted, plus a "how many lessons to your goal" estimate.
+- **Daily challenge + ghost race** — same text for everyone, seeded by the date;
+  you race your own personal best.
+- **Gamification** — XP, levels, local-timezone streaks, combos, real per-lesson
+  stars, 23 badges in 6 groups, unlock gating.
+- **Juice** — keyboard highlighting with finger colors, key pops, screen shake,
+  combo popups, badge toasts, level-up celebration, confetti, Web Audio sounds.
+- **Free typing test** — 30/60 s Monkeytype-style speed test.
+- **Stats** — per-key heatmap, history, JSON export/import of your progress.
+- **Offline** — every font and effect library is bundled. No CDN, no network.
+- **Accessible** — respects `prefers-reduced-motion`, keyboard-operable tabs,
+  Esc closes dialogs.
+- **Signed auto-update** via GitHub Releases.
 
-## Entwicklung
+## Download
+
+Grab the installer from the [latest release](../../releases/latest):
+
+| File | Notes |
+|---|---|
+| `Tippster_..._x64-setup.exe` | Windows installer, ~5 MB, no admin needed |
+| `Tippster_..._x64_en-US.msi` | MSI for managed installs |
+
+## Development
+
+Requires Node 22+ and a Rust toolchain.
 
 ```bash
 npm install
-npm run dev        # Browser (Vite)
-npm test           # Vitest
-npm run build      # Frontend nach dist/
-npm run tauri:dev  # Desktop-App
+npm run dev        # browser (Vite)
+npm test           # Vitest, 50 tests
+npm run build      # frontend -> dist/
+npm run tauri:dev  # desktop app
 ```
 
-### Windows ohne MSVC (GNU-Toolchain)
+### Windows without MSVC (GNU toolchain)
 
-MinGW vor den Build-Befehl hängen:
+Prepend MinGW to PATH before building:
 
 ```powershell
 $env:PATH = 'C:\Users\Mo\.local\mingw64\mingw64\bin;' + $env:USERPROFILE + '\.cargo\bin;' + $env:PATH
 npm run tauri:build
 ```
 
-## Release (öffentlich verteilbar)
+Installers land in `src-tauri/target/release/bundle/`.
 
-Installer landen nach `npm run tauri:build` in:
+## Release / auto-update setup
 
-- `src-tauri/target/release/bundle/nsis/Tippster_<version>_x64-setup.exe`
-- `src-tauri/target/release/bundle/msi/Tippster_<version>_x64_en-US.msi`
-
-### Auto-Update einrichten
-
-1. **Signatur-Schlüssel** (einmalig, niemals committen):
+1. **Signing key** (once, never commit it):
 
    ```bash
    npx tauri signer generate -w "$env:USERPROFILE\.tauri\tippster.key"
    ```
 
-   Der öffentliche Schlüssel steht in `src-tauri/tauri.conf.json` unter `plugins.updater.pubkey`.
+   The public key lives in `src-tauri/tauri.conf.json` under `plugins.updater.pubkey`.
 
-2. **Endpunkt** in `tauri.conf.json` von `DEIN-USER` auf dein GitHub-Repo ändern:
+2. **Update endpoint** in `tauri.conf.json`:
 
    ```
-   https://github.com/<user>/<repo>/releases/latest/download/latest.json
+   https://github.com/<owner>/<repo>/releases/latest/download/latest.json
    ```
 
-3. **GitHub-Secrets** anlegen (Settings → Secrets → Actions):
-   - `TAURI_SIGNING_PRIVATE_KEY` — Inhalt von `tippster.key`
-   - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — Passwort (leer lassen, wenn keins)
+3. **Repository secrets** (Settings → Secrets → Actions):
+   - `TAURI_SIGNING_PRIVATE_KEY` — contents of `tippster.key`
+   - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — leave empty if the key has no password
 
-4. **Release bauen**: Tag pushen.
+4. **Ship a release** with a tag:
 
    ```bash
    git tag v2.0.1 && git push origin v2.0.1
    ```
 
-   Der Workflow `.github/workflows/release.yml` baut signierte Installer und legt einen Draft-Release an. Der lokale Build braucht `TAURI_SIGNING_PRIVATE_KEY` als Pfad oder Inhalt.
+   `.github/workflows/release.yml` builds signed installers and opens a draft release.
 
-> ⚠️ Privaten Schlüssel verloren = keine Updates mehr möglich. Sicher aufbewahren.
+> ⚠️ Lose the private key and you can never ship updates again. Back it up.
 
-## Struktur
+## Project layout
 
 ```
 src/
   js/
-    lessons.js    Lektionen, Finger-Zuordnung, Tastatur-Layout
-    adaptive.js   Adaptive Engine (rolling stats, Prognose)
-    achievements.js  23 Badges (reine Prüf-Funktionen)
-    daily.js      Tages-Seed, Ghost-Fortschritt
-    stats.js      Text-Generierung, Sterne, WPM-Deckel
-    store.js      State, lokales Datum, Unlock/Resume, Migration
-    audio.js      Web-Audio-Sounds
-    fx.js         Konfetti/GSAP-Effekte
-    updater.js    Auto-Update (nur in Tauri aktiv)
-    main.js       UI-Verdrahtung
+    lessons.js      lessons, finger mapping, keyboard layout
+    adaptive.js     adaptive engine (rolling stats, prediction)
+    achievements.js 23 badges (pure predicates)
+    daily.js        daily seed, ghost progress
+    stats.js        text generation, stars, WPM clamp
+    store.js        state, local date, unlock/resume, migration
+    audio.js        Web Audio sounds
+    fx.js           confetti / GSAP effects, toasts
+    updater.js      auto-update (Tauri only, no-op in browser)
+    main.js         UI wiring
   css/app.css
-tests/            Vitest (50 Tests)
-src-tauri/        Tauri-Shell (Rust, Config, Icons)
+tests/              Vitest (50 tests)
+src-tauri/          Tauri shell (Rust, config, icons)
+.github/workflows/  CI + release
 ```
 
-## App-Icon neu erzeugen
-
-Das Icon wird aus `icon-source.png` generiert:
+## Regenerating the app icon
 
 ```bash
-python make-icon.py                 # erzeugt icon-source.png (1024x1024)
-npx tauri icon icon-source.png      # schreibt src-tauri/icons/*
+python make-icon.py                 # writes icon-source.png (1024x1024)
+npx tauri icon icon-source.png      # writes src-tauri/icons/*
 ```
 
-## Quellen / Inspiration
+## Notes
 
-- [Monkeytype](https://github.com/monkeytypegame/monkeytype) — Live-WPM, Test-Modi
-- [Keybr](https://github.com/aradzie/keybr.com) — adaptive Schwachstellen-Übungen
-- [Tipp10](https://www.tipp10.com) — deutsche Lektions-Didaktik
-- [Klavaro](https://klavaro.sourceforge.io) — Stufen-Aufbau
-- [Eletypes](https://github.com/gamer-ai/eletypes-frontend) — Badges, Heatmap
-- [TypeRacer](https://play.typeracer.com) — Renn-Motivation
+- The practice corpus is German on purpose: it is what exercises `ö ä ü ß` and
+  the QWERTZ layout. The interface is English.
+- Progress is stored locally by the app. Use export/import to back it up.
+
+## Built on ideas from
+
+- [Monkeytype](https://github.com/monkeytypegame/monkeytype) — live WPM, test modes
+- [Keybr](https://github.com/aradzie/keybr.com) — adaptive weak-key drills
+- [Tipp10](https://www.tipp10.com) — German lesson methodology
+- [Klavaro](https://klavaro.sourceforge.io) — staged progression
+- [Eletypes](https://github.com/gamer-ai/eletypes-frontend) — badges, heatmap
+- [TypeRacer](https://play.typeracer.com) — racing as motivation

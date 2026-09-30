@@ -2,14 +2,14 @@ import { describe, test, expect } from 'vitest';
 import { recordKeystroke, weakestKeys, buildWeightedPool, lessonsToGoal, rollingAcc, GOAL } from '../src/js/adaptive.js';
 
 describe('recordKeystroke', () => {
-  test('zählt tot/err und begrenzt Fenster auf 30', () => {
+  test('counts tot/err and caps the window at 30', () => {
     const ks = {};
     for (let i = 0; i < 35; i++) recordKeystroke(ks, 'e', i % 2 === 0, 200);
     expect(ks.e.tot).toBe(35);
     expect(ks.e.recent.length).toBe(GOAL.window);
     expect(ks.e.lat.length).toBe(GOAL.window);
   });
-  test('rolling accuracy aus letztem Fenster', () => {
+  test('rolling accuracy uses the last window', () => {
     const ks = {};
     for (let i = 0; i < 10; i++) recordKeystroke(ks, 'a', true, 150);
     for (let i = 0; i < 10; i++) recordKeystroke(ks, 'a', false, 600);
@@ -18,7 +18,7 @@ describe('recordKeystroke', () => {
 });
 
 describe('weakestKeys', () => {
-  test('fehlerhafteste Taste zuerst, gute ignoriert', () => {
+  test('worst key first, healthy keys ignored', () => {
     const ks = {};
     for (let i = 0; i < 10; i++) { recordKeystroke(ks, 'e', false, 500); recordKeystroke(ks, 'f', true, 150); }
     const w = weakestKeys(ks, 3);
@@ -28,7 +28,7 @@ describe('weakestKeys', () => {
 });
 
 describe('buildWeightedPool', () => {
-  test('schwache Taste 4x übergewichtet', () => {
+  test('weak key is weighted 4x', () => {
     const pool = buildWeightedPool('fj', ['e'], 4);
     const count = (c) => pool.split('').filter(x => x === c).length;
     expect(count('e')).toBe(4);
@@ -37,7 +37,7 @@ describe('buildWeightedPool', () => {
 });
 
 describe('lessonsToGoal', () => {
-  test('0 wenn alles gemeistert, >0 bei offener Taste', () => {
+  test('0 when everything is mastered, >0 with an open key', () => {
     const ks = {};
     for (let i = 0; i < 25; i++) { recordKeystroke(ks, 'f', true, 150); recordKeystroke(ks, 'j', true, 150); }
     expect(lessonsToGoal(ks, 'fj')).toBe(0);
