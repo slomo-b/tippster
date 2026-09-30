@@ -7,7 +7,7 @@ related_targets: ["src"]
 
 # Surface: Tippster desktop app
 
-Scope: the whole product surface — Learn, Free typing, Challenge, Stats, Sources.
+Scope: the whole product surface — Learn, Free, Daily, Stats, Sources.
 Visitor mode: **Operate** (the learner completes a task: type a drill line).
 Primary target: `index.html` + `src/` (Tauri desktop window, 1120×760 default,
 900×640 minimum; also runs in a browser).
@@ -22,44 +22,43 @@ Product truth lives in PRODUCT.md.
 
 ## Direction contract
 
-THESIS: The drill line is a mechanical departure board. Every character is a flap
-cell that turns over as you type it. This owns the ONE thing a typing trainer must
-show — the character you are about to type and whether you just got it right — and
-refuses the category default of a wall of prose with a caret somewhere inside it.
+THESIS: The screen is a character grid, and light is made of glyphs rather than
+colour. The interface does not sit on top of a live render — it *is* one, and it
+answers every keystroke. The one belief this must install: your typing is moving
+something, and the display's own energy is your streak made visible. It refuses the
+category default of a dark app with a coloured accent.
 
-OWN-WORLD: Matte ink-black flap cells on brushed steel; warm white painted
-letterforms; a single amber lamp marking the live cell; dim red for a wrong leaf;
-zebra hatching for weakness. No gradients, no glow, no rounded pills. Type is
-Archivo Narrow condensed caps on the flaps and labels, Martian Mono on every
-mechanical counter. Recognisable with all text removed: a ruled grid of black
-cells on steel, four amber lamps, hatched columns.
+OWN-WORLD: One hue only, amber phosphor `#E8A33D` on `#0B0B09`, with `#B9822F` for text
+not yet reached and `#7A5620` for structure. Brightness is a position in the ramp
+` .:-=+*#%@`, never a colour value. Emphasis is inverse video. Sometype Mono carries all
+functional text; VT323 carries the four readout numerals. Recognisable with all text
+removed: a drifting density field of amber glyphs, a bright caret cell, and a bar whose
+leading edge is its densest point.
 
-STORY: The visitor understands within one glance that this board is their
-keyboard's output, sees which key is live, types it, and watches the leaf turn.
-They believe their weakness is being measured because they can see it hatched.
+STORY: The visitor sees a screen already alive, reads the one line they must type,
+types it, and watches the field answer them. Each correct key sends a ring of light;
+a miss tears the grid; a finished line blooms. Their combo sets how hard the screen is
+running. Nothing is explained, because the feedback is immediate.
 
-FIRST VIEWPORT: Full-bleed steel ground. A top rail carries TIPPSTER in condensed
-caps left and three mechanical counter wheels right (WPM, accuracy, combo) in
-Martian Mono between hairline rules. Below it the departure board: one ruled band
-of flap cells holding the drill line, the live cell lit amber, already-typed cells
-settled white, wrong leaves dim red. Under the board, the key field — four ruled
-rows of key cells in the same language, weakest columns zebra-hatched, the next
-key's cell lit amber. The primary action, NEW LINE, sits as a steel plate at the
-bottom left of the board, never floating.
+FIRST VIEWPORT: Rail with `TIPPSTER_` left and level/streak/stars/XP right. Bracket tab
+row. Then the line: a 30-cell density bar, the drill text with the live character in
+inverse video, a pointer row with `^` under it, and one status line of readouts
+(`wpm acc combo goal`) whose numerals are VT323. Under that the key field — the same
+character cells, each carrying its own error rate as a ramp glyph. Primary action is
+`new line`, a bracket-style button, not a floating pill.
 
-FORM: split-flap concourse board (challenger, hand position 3), raised by three
-named donations — from the one-bit desktop: dither/1-bit tonal discipline, two
-inks and no gradient; from the viewfinder HUD: state by pattern rather than
-colour, hatch marks trouble; from the deep dive: one ruled axis governs every
-measurement. Seed key c4c4ae4e.
+FORM: ASCII live render (challenger, source `medium-native-ascii-live-scene-render`),
+taken at the assignment's full commitment: "density of glyphs stands in for light" is
+the palette, the typographic scale, and the motion system at once. Seed key b11b0e4d.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish
 review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
 
 ## Memorable moment
 
-Completing a line makes the whole board cascade left to right, leaf over leaf —
-the ripple of clacks that lifts every head in a concourse.
+A miss tears the whole grid into noise for a beat; a completed line blooms outward from
+the centre; and the field's density trackers your combo, so a long run makes the screen
+itself run hotter.
 
 ## Unresolved
 
