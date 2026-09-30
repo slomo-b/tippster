@@ -1,6 +1,6 @@
 {
   "name": "tippster",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Tippster - 10-Finger spielerisch lernen (Tauri V2 Desktop-App)",
   "type": "module",
   "scripts": {
