@@ -1,6 +1,6 @@
 [package]
 name = "tippster"
-version = "2.0.1"
+version = "2.0.2"
 description = "Tippster - 10-Finger spielerisch lernen"
 authors = ["Tippster"]
 license = "GPL-3.0"
