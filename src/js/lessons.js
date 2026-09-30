@@ -8,9 +8,9 @@ export const LESSONS = [
  {t:'R + U — top row, part 1',d:'Jump up from F→R and J→U, then straight back home.',keys:'fjr u',words:['duru','ruru','fur','ruf','juror']},
  {t:'E + I — the frequent E!',d:'E is the most common letter in German.',keys:'fruei',words:['freie','eier','reife','feier','leier']},
  {t:'W + O — extend the top row',d:'Add W/O. Keep the wrists relaxed.',keys:'frueiwo',words:['wore','rohe','wie','uwe','erio']},
- {t:'Q P T Z Ü — top row complete 👑 BOSS',d:'Boss fight: the entire top row!',keys:'qwertzuiopü',words:['quiz','putz','quote','töpfe','würze'],boss:true},
+ {t:'Q P T Z Ü — top row complete (boss)',d:'Boss fight: the entire top row!',keys:'qwertzuiopü',words:['quiz','putz','quote','töpfe','würze'],boss:true},
  {t:'Bottom: B N V M C , X . Y',d:'Thumb-side first (B/N), then work outward.',keys:'bnvmcx.,y',words:['my','baby','cyan','combin','nym']},
- {t:'FINAL BOSS: everything + sentences 🏆',d:'Real sentences with Shift and punctuation.',keys:'all',words:['Das ist mein Tempo!','Fixe Beute, quasi jung.','Übe fünf Minuten täglich!','Victor jagt zwölf Boxkämpfer.'],boss:true},
+ {t:'Final boss: everything + sentences',d:'Real sentences with Shift and punctuation.',keys:'all',words:['Das ist mein Tempo!','Fixe Beute, quasi jung.','Übe fünf Minuten täglich!','Victor jagt zwölf Boxkämpfer.'],boss:true},
 ];
 
 export const FINGER = {'1':'lk','2':'lr','3':'lm','4':'li','5':'li','6':'ri','7':'ri','8':'rm','9':'rr','0':'rk','a':'lk','q':'lk','y':'lk','s':'lr','w':'lr','x':'lr','d':'lm','e':'lm','c':'lm','f':'li','r':'li','v':'li','t':'li','g':'li','b':'li','h':'ri','z':'ri','n':'ri','u':'ri','j':'ri','m':'ri','k':'rm','i':'rm',',':'rm','l':'rr','o':'rr','.':'rr','ö':'rk','p':'rk','-':'rk','ä':'rk','ü':'rk','ß':'rk',' ':'t'};

@@ -3,142 +3,201 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tippster — learn touch typing the fun way</title>
+<title>Tippster — learn touch typing at the board</title>
 <link rel="stylesheet" href="/src/css/app.css">
 </head>
 <body>
-<div id="combo"></div>
-<div id="toasts"></div>
-<div id="levelup"><div class="lvlbox" id="levelupBox"></div></div>
-<div id="overlay"><div class="box" id="overlayBox"></div></div>
 
-<header><div class="hwrap">
-  <div class="logo">⌨️ tipp<span>ster</span></div>
-  <div class="xpbox"><div style="display:flex;justify-content:space-between;font-size:13px"><span id="lvlLabel">Level 1</span><span id="xpLabel">0 XP</span></div><div class="xpbar"><div id="xpFill"></div></div></div>
-  <div class="pills">
-    <div class="pill" id="streakPill">🔥 0 days</div>
-    <div class="pill" id="starsPill">⭐ 0</div>
-    <button class="btn ghost" id="soundBtn">🔊 Sound on</button>
-  </div>
-</div></header>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-learn" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></symbol>
+    <symbol id="i-free" viewBox="0 0 24 24"><path d="M13 3 5 14h6l-1 7 8-11h-6z"/></symbol>
+    <symbol id="i-daily" viewBox="0 0 24 24"><path d="M6 3v18M6 4h12l-3 4 3 4H6"/></symbol>
+    <symbol id="i-stats" viewBox="0 0 24 24"><path d="M3 21h18M7 21V11M12 21V5M17 21v-7"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4h7v16H4zM13 4h7v16h-7z"/><path d="M11 4v16"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9a4 4 0 0 1 0 6"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 10l4 4M21 10l-4 4"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/></symbol>
+    <symbol id="i-skip" viewBox="0 0 24 24"><path d="M5 5l7 7-7 7M13 5l7 7-7 7"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v14M6 12l6 6 6-6"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 20V6M6 12l6-6 6 6"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 4l2.4 5.2 5.6.6-4.2 3.8 1.2 5.4L12 16.7 7 19l1.2-5.4L4 9.8l5.6-.6z"/></symbol>
+    <symbol id="i-lamp" viewBox="0 0 24 24"><path d="M12 3v3M5 8l2 2M19 8l-2 2M4 15h16M7 15v5h10v-5"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 5H5v2a3 3 0 0 0 3 3M16 5h3v2a3 3 0 0 1-3 3M10 17h4M9 20h6"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c3 4 6 6 6 10a6 6 0 0 1-12 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 2-9z"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></symbol>
+  </defs>
+</svg>
 
-<main>
-<nav class="tabs" role="tablist">
-  <button type="button" class="tab on" role="tab" aria-selected="true" data-t="learn">🎮 Learn</button>
-  <button type="button" class="tab" role="tab" aria-selected="false" data-t="free">⚡ Free typing</button>
-  <button type="button" class="tab" role="tab" aria-selected="false" data-t="daily">🏁 Challenge</button>
-  <button type="button" class="tab" role="tab" aria-selected="false" data-t="stats">📊 Stats & Badges</button>
-  <button type="button" class="tab" role="tab" aria-selected="false" data-t="quellen">📚 Sources</button>
-</nav>
+<div id="app">
 
-<!-- LEARN -->
-<section id="view-learn" class="grid">
-  <div class="card">
-    <h2 id="lessonTitle">Lesson 1: F + J — the home bumps</h2>
-    <p class="sub" id="lessonDesc">Index fingers rest on F/J (the little bumps). No peeking!</p>
-    <div class="quest" id="quest">🎯 Daily quest loading…</div>
-    <div id="textFlow"></div>
-    <div class="statsrow">
-      <div class="stat"><b id="sWpm">0</b><span>WPM</span></div>
-      <div class="stat"><b id="sAcc">100%</b><span>Accuracy</span></div>
-      <div class="stat"><b id="sCombo">0</b><span>Combo</span></div>
-      <div class="stat"><b id="sProg">0%</b><span>Progress</span></div>
+  <!-- ── top rail: live measurement ───────────────────────── -->
+  <header class="rail">
+    <div class="wordmark">Tipp<b>ster</b></div>
+    <div class="counters">
+      <div class="counter is-live"><span class="lab">Words/min</span><span class="val" id="cWpm">0</span></div>
+      <div class="counter"><span class="lab">Accuracy</span><span class="val" id="cAcc">100%</span></div>
+      <div class="counter"><span class="lab">Combo</span><span class="val" id="cCombo">0</span></div>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" id="restartBtn">↻ Restart</button>
-      <button class="btn ghost" id="skipBtn">Skip (lazy 🤫)</button>
-    </div>
-    <p class="hint">Tip: fingers always return to the <b>home row ASDF JKLÖ</b>. Thumb = space. Shift always with the <b>opposite hand</b>!</p>
-    <div class="kbd" id="kbd"></div>
-    <div class="fingers" id="fingers"></div>
-  </div>
-  <div class="card">
-    <h2>Your learning path 🗺️</h2>
-    <p class="sub">Method from Tipp10 + Keybr: 2 new keys per step, your weak keys come up more often (adaptive engine). Boss every 4 levels.</p>
-    <div class="levels" id="levels"></div>
-    <h2 style="margin-top:16px">How to actually stick with it (for lazy people) 🦥</h2>
-    <p class="sub">• <b>5 min/day</b> is enough for a streak • mistakes are XP • a boss unlocks the next step, it doesn't demand perfection</p>
-    <div id="badges"></div>
-  </div>
-</section>
+  </header>
 
-<!-- FREE -->
-<section id="view-free" class="grid" style="display:none">
-  <div class="card">
-    <h2>⚡ Speed test (Monkeytype style)</h2>
-    <p class="sub">60 seconds, German practice words. Great right after a lesson.</p>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <button class="btn ghost" data-time="30">30s</button>
-      <button class="btn ghost" data-time="60">60s</button>
-      <button class="btn" id="freeStart">Start</button>
-    </div>
-    <div id="freeText" style="font-family:'JetBrains Mono',monospace;font-size:22px;line-height:1.9;background:#080c1d;border:1px solid var(--line);border-radius:14px;padding:18px;min-height:140px"></div>
-    <div class="statsrow"><div class="stat"><b id="fWpm">0</b><span>WPM</span></div><div class="stat"><b id="fAcc">100%</b><span>Accuracy</span></div><div class="stat"><b id="fTime">60</b><span>Seconds</span></div></div>
-  </div>
-  <div class="card"><h2>Why this works</h2><p class="sub">Live WPM + accuracy (Monkeytype), your weakest key gets over-weighted (Keybr), streak mercy (Duolingo). Sources below.</p><div class="quest">🏆 Push yourself: 40 WPM + 95% = speed badge. 60 WPM = ninja.</div></div>
-</section>
+  <!-- ── tab rail ─────────────────────────────────────────── -->
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-t="learn"><svg><use href="#i-learn"/></svg>Learn</button>
+    <button class="tab" role="tab" aria-selected="false" data-t="free"><svg><use href="#i-free"/></svg>Free typing</button>
+    <button class="tab" role="tab" aria-selected="false" data-t="daily"><svg><use href="#i-daily"/></svg>Challenge</button>
+    <button class="tab" role="tab" aria-selected="false" data-t="stats"><svg><use href="#i-stats"/></svg>Stats</button>
+    <button class="tab" role="tab" aria-selected="false" data-t="quellen"><svg><use href="#i-book"/></svg>Sources</button>
+  </nav>
 
-<!-- DAILY / GHOST -->
-<section id="view-daily" class="grid" style="display:none">
-  <div class="card">
-    <h2>🏁 Daily challenge</h2>
-    <p class="sub">Same text for everyone, fresh every day (the date is the seed). Beat your ghost!</p>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
-      <button class="btn" id="dailyStart">Start</button>
-      <span class="hint" id="dailyBest">Today's best: —</span>
+  <!-- ── learn ────────────────────────────────────────────── -->
+  <section class="view" id="view-learn">
+    <div class="col-main">
+      <div class="head">
+        <h2 id="lessonTitle">F + J — the home bumps</h2>
+        <span class="meta" id="lessonMeta">line 1</span>
+      </div>
+      <div class="board" id="board"></div>
+      <div class="keyfield" id="keyfield"></div>
+      <div class="controls">
+        <button class="plate primary" id="newLine"><svg><use href="#i-refresh"/></svg>New line</button>
+        <button class="plate quiet" id="skipLine"><svg><use href="#i-skip"/></svg>Skip level</button>
+        <span class="meta" id="quest">Loading…</span>
+      </div>
+      <p class="note" id="hint">Fingers return to the home row <b>ASDF JKLÖ</b>. Thumb takes the space bar. Shift always with the opposite hand.</p>
     </div>
-    <div class="ghosttrack"><div class="ghostfill" id="ghostFill"></div><div class="ghostmark" id="ghostMark">👻</div></div>
-    <div id="dailyText"></div>
-    <div class="statsrow">
-      <div class="stat"><b id="dWpm">0</b><span>WPM</span></div>
-      <div class="stat"><b id="dAcc">100%</b><span>Accuracy</span></div>
-      <div class="stat"><b id="dGhost">0</b><span>Ghost WPM</span></div>
+    <aside class="col-side">
+      <div class="head"><h2>Path</h2><span class="meta" id="pathMeta">0/12</span></div>
+      <div class="list" id="path"></div>
+      <div class="head" style="margin-top:16px"><h2>Badges</h2><span class="meta" id="badgeMeta">0/23</span></div>
+      <div class="badges" id="badges" style="margin-top:8px"></div>
+    </aside>
+  </section>
+
+  <!-- ── free typing ──────────────────────────────────────── -->
+  <section class="view" id="view-free" hidden>
+    <div class="col-main">
+      <div class="head"><h2>Free typing</h2><span class="meta">speed test</span></div>
+      <div class="controls">
+        <button class="plate" data-time="30">30 s</button>
+        <button class="plate" data-time="60">60 s</button>
+        <button class="plate primary" id="freeStart"><svg><use href="#i-free"/></svg>Start</button>
+        <span class="meta" id="freeTime">60</span>
+      </div>
+      <div class="line" id="freeLine"></div>
+      <div class="stat-line">
+        <div><span class="lab">Words/min</span><span class="val" id="fWpm">0</span></div>
+        <div><span class="lab">Accuracy</span><span class="val" id="fAcc">100%</span></div>
+        <div><span class="lab">Seconds left</span><span class="val" id="fLeft">60</span></div>
+      </div>
+    </div>
+    <aside class="col-side">
+      <div class="head"><h2>Why this works</h2></div>
+      <p class="note">Live speed and accuracy after Monkeytype; the weakest key is over-weighted after Keybr; streak mercy after Duolingo. The German practice words exist to exercise <b>ö ä ü ß</b> on QWERTZ.</p>
+    </aside>
+  </section>
+
+  <!-- ── daily challenge ──────────────────────────────────── -->
+  <section class="view" id="view-daily" hidden>
+    <div class="col-main">
+      <div class="head"><h2>Daily challenge</h2><span class="meta" id="dailyDate">—</span></div>
+      <div class="controls">
+        <button class="plate primary" id="dailyStart"><svg><use href="#i-daily"/></svg>Start</button>
+        <span class="meta" id="dailyBest">No run today</span>
+      </div>
+      <div class="track" id="track">
+        <div class="fill" id="trackFill"></div>
+        <div class="ghost" id="ghostMark"></div>
+        <div class="mine" id="mineMark"></div>
+      </div>
+      <div class="line" id="dailyLine"></div>
+      <div class="stat-line">
+        <div><span class="lab">Words/min</span><span class="val" id="dWpm">0</span></div>
+        <div><span class="lab">Accuracy</span><span class="val" id="dAcc">100%</span></div>
+        <div><span class="lab">Ghost</span><span class="val" id="dGhost">0</span></div>
+      </div>
+    </div>
+    <aside class="col-side">
+      <div class="head"><h2>Ghost race</h2></div>
+      <p class="note">Same text for everyone, seeded from the date. The white rule is your best run today; the amber rule is you, now.</p>
+      <p class="note" id="dailyQuest" style="color:var(--paint)">No run yet today.</p>
+      <div class="head" style="margin-top:16px"><h2>Badges</h2></div>
+      <div class="badges" id="badgesDaily" style="margin-top:8px"></div>
+    </aside>
+  </section>
+
+  <!-- ── stats ────────────────────────────────────────────── -->
+  <section class="view" id="view-stats" hidden>
+    <div class="col-main">
+      <div class="head"><h2>Key heat</h2><span class="meta">weakness, hatched</span></div>
+      <p class="note">One column per key. The bar under a key is its error rate — it feeds the daily quest automatically.</p>
+      <div class="heat" id="heat" style="margin-top:10px"></div>
+      <div class="controls" style="margin-top:16px">
+        <button class="plate" id="exportBtn"><svg><use href="#i-down"/></svg>Export</button>
+        <button class="plate" id="importBtn"><svg><use href="#i-up"/></svg>Import</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+        <button class="plate quiet" id="resetBtn"><svg><use href="#i-trash"/></svg>Reset</button>
+      </div>
+    </div>
+    <aside class="col-side">
+      <div class="head"><h2>Badges</h2><span class="meta" id="badgeMeta2">0/23</span></div>
+      <div class="badges" id="badges2" style="margin-top:8px"></div>
+      <div class="head" style="margin-top:16px"><h2>Recent lines</h2></div>
+      <div class="docs" id="history"></div>
+    </aside>
+  </section>
+
+  <!-- ── sources ──────────────────────────────────────────── -->
+  <section class="view" id="view-quellen" hidden>
+    <div class="col-main">
+      <div class="head"><h2>Where the method comes from</h2></div>
+      <div class="docs" style="margin-top:8px">
+        <a href="https://github.com/monkeytypegame/monkeytype" target="_blank" rel="noreferrer">Monkeytype<span class="src">live speed and accuracy · 20.6k★</span></a>
+        <a href="https://github.com/aradzie/keybr.com" target="_blank" rel="noreferrer">Keybr<span class="src">adaptive weak-key drills · 4.7k★</span></a>
+        <a href="https://www.tipp10.com" target="_blank" rel="noreferrer">Tipp10<span class="src">German lesson order and error intelligence</span></a>
+        <a href="https://klavaro.sourceforge.io" target="_blank" rel="noreferrer">Klavaro<span class="src">staged progression</span></a>
+        <a href="https://github.com/gamer-ai/eletypes-frontend" target="_blank" rel="noreferrer">Eletypes<span class="src">badges and heatmap</span></a>
+        <a href="https://play.typeracer.com" target="_blank" rel="noreferrer">TypeRacer<span class="src">racing as the motivator</span></a>
+      </div>
+    </div>
+    <aside class="col-side">
+      <div class="head"><h2>Teaching order</h2></div>
+      <p class="note">F J → D K → S L → A Ö → G H → Ä → R U → E I → W O → Q P T Z Ü → bottom row → final boss. Two new keys per level, and your own weak keys come up more often.</p>
+      <div class="head" style="margin-top:16px"><h2>Built offline</h2></div>
+      <p class="note">Fonts, sound and motion are bundled. No network at runtime, no account, progress on your machine.</p>
+    </aside>
+  </section>
+
+  <!-- ── standing state rail ──────────────────────────────── -->
+  <footer>
+    <span class="meta" id="fLvl">Level 1</span>
+    <span class="meta"><svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.7;vertical-align:-2px"><use href="#i-flame"/></svg> <span id="fStreak">0</span> days</span>
+    <span class="meta"><svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.7;vertical-align:-2px"><use href="#i-star"/></svg> <span id="fStars">0</span></span>
+    <span class="meta" id="fXp">0 XP</span>
+    <button class="plate quiet" id="soundBtn" style="margin-left:auto;padding:4px 10px"><svg><use href="#i-sound"/></svg>Sound</button>
+  </footer>
+</div>
+
+<div class="log" id="log"></div>
+<div class="banner" id="banner" hidden><h1 id="bannerLvl">Level 2</h1><p>keep going</p></div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet">
+    <h1 id="sheetTitle">Line complete</h1>
+    <div class="verdict">
+      <span>speed <b id="sheetWpm">0</b></span>
+      <span>accuracy <b id="sheetAcc">0%</b></span>
+      <span>best combo <b id="sheetCombo">0</b></span>
+    </div>
+    <div class="verdict"><span id="sheetStars">—</span></div>
+    <p class="say" id="sheetSay"></p>
+    <div class="controls">
+      <button class="plate primary" id="ovNext">Next level</button>
+      <button class="plate quiet" id="ovAgain"><svg><use href="#i-refresh"/></svg>Same line</button>
     </div>
   </div>
-  <div class="card">
-    <h2>Ghost race 🐇</h2>
-    <p class="sub">You race your own personal best — the strongest local motivator there is (TypeRacer principle, no server needed).</p>
-    <div class="quest" id="dailyQuest">Not raced yet today.</div>
-    <h2 style="margin-top:16px">Badges</h2>
-    <p class="sub"><span id="badgeCount">0</span> unlocked</p>
-    <div id="badgesDaily"></div>
-  </div>
-</section>
-
-<!-- STATS -->
-<section id="view-stats" class="grid" style="display:none">
-  <div class="card"><h2>📊 Key heatmap</h2><p class="sub">Red = your problem keys. The daily quest trains them automatically.</p><div class="heat" id="heat"></div>
-  <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-    <button class="btn ghost" id="exportBtn">⬇ Export</button>
-    <button class="btn ghost" id="importBtn">⬆ Import</button>
-    <input type="file" id="importFile" accept=".json,application/json" hidden>
-    <button class="btn warn" id="resetBtn">Reset everything</button>
-  </div></div>
-  <div class="card"><h2>🏅 Badges</h2><p class="sub">XP + streak + combos + speed. Everything is stored locally in your app data.</p><div id="badges2"></div><h2>History</h2><div id="history" class="hint"></div></div>
-</section>
-
-<!-- SOURCES -->
-<section id="view-quellen" class="grid" style="display:none">
-  <div class="card"><h2>📚 Sources (top repos)</h2>
-  <ul>
-    <li><b>Monkeytype</b> (20.6k★, GPL-3.0) — live WPM, modes, themes, leaderboards: <a href="https://github.com/monkeytypegame/monkeytype" target="_blank">github.com/monkeytypegame/monkeytype</a></li>
-    <li><b>Keybr.com</b> (4.7k★, AGPL-3.0) — adaptive weak-key drills and prediction: <a href="https://github.com/aradzie/keybr.com" target="_blank">github.com/aradzie/keybr.com</a></li>
-    <li><b>Tipp10</b> (German classic, Stiftung Warentest winner) — 20 lessons + error intelligence: <a href="https://www.tipp10.com" target="_blank">tipp10.com</a></li>
-    <li><b>Klavaro</b> (GPLv3) — four-stage method, layout independent: <a href="https://klavaro.sourceforge.io" target="_blank">klavaro.sourceforge.io</a></li>
-    <li><b>Eletypes</b> (~500★) — badges, heatmap, challenge links: <a href="https://github.com/gamer-ai/eletypes-frontend" target="_blank">eletypes-frontend</a></li>
-    <li><b>TypeRacer</b> — racing is the strongest motivator: <a href="https://play.typeracer.com" target="_blank">play.typeracer.com</a></li>
-  </ul></div>
-  <div class="card"><h2>✨ Effect stack</h2>
-  <ul>
-    <li><b>canvas-confetti</b> — confetti on level-up and records</li>
-    <li><b>GSAP</b> — key pops, combo popups, XP tweens, overlays</li>
-    <li><b>Web Audio API</b> (0 KB) — click / error / level sounds, no MP3 needed</li>
-    <li><b>@fontsource</b> — Outfit + JetBrains Mono bundled offline</li>
-  </ul>
-  <p class="hint">QWERTZ teaching order: F J → D K → S L → A Ö → G H → Ä → R U → E I → W O → Q P T Z Ü → bottom row → Shift/numbers/punctuation.</p></div>
-</section>
-</main>
-<footer>Built with laziness 🦥 — 5 min a day beats 2 hours on Sunday. Progress is stored locally.</footer>
+</div>
 
 <script type="module" src="/src/js/main.js"></script>
 </body>
