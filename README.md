@@ -6,8 +6,9 @@
 
 - **12 didaktische Lektionen** (QWERTZ): `F J → D K → S L → A Ö → G H → Ä → R U → E I → W O → Q P T Z Ü → unten → Final Boss`, inkl. Boss-Fights.
 - **Adaptive Engine**: rolling Genauigkeit (letzte 30 Anschläge) + Latenz pro Taste; schwache Tasten werden **4× übergewichtet** und als Tages-Quest trainiert.
-- **Gamification**: XP, Level, Streak (lokale Zeitzone), Combos, echte Sterne pro Lektion, Badges, Unlock-Gating.
-- **Juice**: Tastatur-Highlight, Key-Pops (GSAP), Screen-Shake, Combo-Popups, Konfetti (canvas-confetti), Web-Audio-Sounds.
+- **Gamification**: XP, Level, Streak (lokale Zeitzone), Combos, echte Sterne pro Lektion, **23 Badges** in 6 Gruppen, Unlock-Gating.
+- **Tages-Challenge + Ghost-Race**: derselbe Text für alle (Datum als Seed) — du fährst gegen deinen eigenen Bestwert.
+- **Juice**: Tastatur-Highlight, Key-Pops (GSAP), Screen-Shake, Combo-Popups, Badge-Toasts, Level-Up-Feier, Konfetti (canvas-confetti), Web-Audio-Sounds.
 - **Offline** — alle Fonts und Libraries sind gebündelt, kein CDN.
 - **Auto-Update** (signiert) über GitHub Releases.
 - **Fortschritt sichern**: Export/Import als JSON (Stats-Tab).
@@ -76,14 +77,16 @@ src/
   js/
     lessons.js    Lektionen, Finger-Zuordnung, Tastatur-Layout
     adaptive.js   Adaptive Engine (rolling stats, Prognose)
-    stats.js      Text-Generierung, Sterne
+    achievements.js  23 Badges (reine Prüf-Funktionen)
+    daily.js      Tages-Seed, Ghost-Fortschritt
+    stats.js      Text-Generierung, Sterne, WPM-Deckel
     store.js      State, lokales Datum, Unlock/Resume, Migration
     audio.js      Web-Audio-Sounds
     fx.js         Konfetti/GSAP-Effekte
     updater.js    Auto-Update (nur in Tauri aktiv)
     main.js       UI-Verdrahtung
   css/app.css
-tests/            Vitest (29 Tests)
+tests/            Vitest (50 Tests)
 src-tauri/        Tauri-Shell (Rust, Config, Icons)
 ```
 
