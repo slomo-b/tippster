@@ -37,7 +37,7 @@ jobs:
             development bottleneck.
 
             ### Download
-            - **`Tippster_..._x64-setup.exe`** — Windows installer (recommended, ~5 MB)
+            - **`Tippster_..._x64-setup.exe`** — Windows installer (recommended)
             - **`Tippster_..._x64_en-US.msi`** — Windows MSI for managed installs
 
             No admin rights needed for the NSIS installer. Runs fully offline —

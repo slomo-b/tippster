@@ -46,7 +46,7 @@ Grab the installer from the [latest release](../../releases/latest):
 
 | File | Notes |
 |---|---|
-| `Tippster_..._x64-setup.exe` | Windows installer, ~5 MB, no admin needed |
+| `Tippster_..._x64-setup.exe` | Windows installer, no admin needed |
 | `Tippster_..._x64_en-US.msi` | MSI for managed installs |
 
 ## Development
