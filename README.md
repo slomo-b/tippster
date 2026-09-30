@@ -92,15 +92,36 @@ Installers land in `src-tauri/target/release/bundle/`.
    - `TAURI_SIGNING_PRIVATE_KEY` — contents of `tippster.key`
    - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — leave empty if the key has no password
 
-4. **Ship a release** with a tag:
+4. **Ship a release** with the helper — it bumps all three version files, commits, tags and pushes:
 
    ```bash
-   git tag v2.0.1 && git push origin v2.0.1
+   npm run release 2.0.3
    ```
 
-   `.github/workflows/release.yml` builds signed installers and opens a draft release.
+   `.github/workflows/release.yml` then builds the signed installers and opens a draft
+   release. Publish the draft to make it the feed installed apps update from.
 
 > ⚠️ Lose the private key and you can never ship updates again. Back it up.
+
+### How installed apps update
+
+The updater polls `releases/latest/download/latest.json` — on start, every four hours,
+and when the window regains focus. It compares that version to the running one, offers
+the install in the bottom rail, and only downloads when you press it. **The repository
+must be public**: an anonymous update check against a private repo returns 404.
+
+## Installer artwork
+
+The Windows installer and uninstaller are branded to match the app (NSIS header and
+sidebar, WiX banner and dialog). Regenerate after a palette change:
+
+```bash
+python make-installer-art.py     # writes src-tauri/installer/*.bmp
+```
+
+Wired in `src-tauri/tauri.conf.json` under `bundle.windows`. The required pixel sizes
+come from the Tauri config schema, not from guessing:
+NSIS 150×57 header and 164×314 sidebar, WiX 493×58 banner and 493×312 dialog.
 
 ## Project layout
 
@@ -120,6 +141,8 @@ src/
   css/app.css
 tests/              Vitest (50 tests)
 src-tauri/          Tauri shell (Rust, config, icons)
+src-tauri/installer/  installer and uninstaller artwork (regenerate with make-installer-art.py)
+scripts/release.mjs   bump versions, commit, tag, push
 .github/workflows/  CI + release
 ```
 
