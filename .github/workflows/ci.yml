@@ -11,8 +11,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -25,10 +25,19 @@ jobs:
   rust-check:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
       - uses: dtolnay/rust-toolchain@stable
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+      # tauri-build prüft frontendDist ("../dist") schon beim Kompilieren -> muss existieren.
+      - name: Frontend bauen
+        run: |
+          npm ci
+          npm run build
       - name: Rust kompiliert (ohne Bundle)
         run: cargo build --manifest-path src-tauri/Cargo.toml
