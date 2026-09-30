@@ -90,16 +90,17 @@ body{
 .line{
   font-size:19px;line-height:1.7;letter-spacing:.06em;
   white-space:pre-wrap;word-break:break-word;
-  padding:2px 0;color:var(--phos-2);
+  padding:2px 0 1.5em;color:var(--phos-2);
 }
+.line span{position:relative}
 .line .todo{color:var(--phos-2)}
 .line .done{color:var(--phos)}
 .line .cur{background:var(--phos);color:var(--void)}
-.line .bad{background:var(--phos-2);color:var(--void)}
-.pointer{
-  font-size:19px;line-height:1;letter-spacing:.06em;height:1.2em;
-  white-space:pre-wrap;word-break:break-word;color:var(--phos);
+.line .cur::after{               /* the caret stays welded to its character, through any wrap */
+  content:'^';position:absolute;left:0;right:0;top:100%;line-height:1;
+  text-align:center;color:var(--phos);background:none;
 }
+.line .bad{background:var(--phos-2);color:var(--void)}
 
 /* ---------- key field ---------- */
 .keys{border:1px solid var(--phos-3);padding:7px;display:flex;flex-direction:column;gap:3px}
@@ -109,7 +110,7 @@ body{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:1px;color:var(--phos-2);font-size:13px;position:relative;
 }
-.key .gl{font-size:11px;color:var(--phos-3)}
+.key .gl{font-size:11px;color:var(--phos-2)}
 .key.weak .gl{color:var(--phos)}
 .key.live{background:var(--phos);color:var(--void)}
 .key.live .gl{color:var(--void)}
@@ -131,7 +132,7 @@ body{
   padding:3px 0;
 }
 .read span{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--phos-2)}
-.read b{font-family:var(--disp);font-size:26px;line-height:1;font-weight:400;color:var(--phos);margin-left:5px}
+.read b{font-family:var(--disp);font-size:21px;line-height:1;font-weight:400;color:var(--phos);margin-left:5px}
 
 /* ---------- controls ---------- */
 .ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -156,13 +157,13 @@ body{
 .list button:hover{color:var(--phos)}
 .list button[aria-current="true"]{background:var(--phos);color:var(--void)}
 .list button:disabled{opacity:.32;cursor:not-allowed}
-.list .no{color:var(--phos-3)}
+.list .no{color:var(--phos-2)}
 .list button[aria-current="true"] .no{color:var(--void)}
 
 /* ---------- heat ---------- */
 .heat{display:grid;grid-template-columns:repeat(auto-fill,minmax(4.6ch,1fr));gap:1px;border:1px solid var(--phos-3)}
 .heat div{border-right:1px solid var(--phos-3);padding:5px 0 6px;text-align:center;font-size:12px}
-.heat div i{display:block;font-style:normal;color:var(--phos-3);font-size:11px}
+.heat div i{display:block;font-style:normal;color:var(--phos-2);font-size:11px}
 
 /* ---------- badges ---------- */
 .badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(22ch,1fr))}
@@ -200,11 +201,12 @@ body{
 .foot{
   flex:0 0 auto;min-height:30px;border-top:1px solid var(--phos-3);
   display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  font-size:11px;letter-spacing:.12em;color:var(--phos-3);text-transform:uppercase;
+  font-size:11px;letter-spacing:.12em;color:var(--phos-2);text-transform:uppercase;
   padding:5px 0;
 }
-.foot b{color:var(--phos-2);font-weight:400}
+.foot b{color:var(--phos);font-weight:400}
 .foot .btn{padding:3px 9px;font-size:11px;margin-left:auto}
+.sep{margin-top:16px}
 
 /* ---------- misc ---------- */
 .track{font-size:14px;line-height:1.25}

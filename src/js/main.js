@@ -22,9 +22,11 @@ const save = () => {
 };
 const field = createField(document.getElementById('field'));
 const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 /* ── run state ─────────────────────────────────────────────── */
 let cur = 0, pos = 0, target = '', startT = 0, errs = 0, hits = 0, combo = 0, maxCombo = 0, done = false;
+let autoTimer = null;
 window._errAt = new Set();
 
 function renderLine() {
@@ -38,7 +40,6 @@ function renderLine() {
   }
   el.textContent = '';
   el.appendChild(frag);
-  $('pointer').textContent = ' '.repeat(pos) + '^';
   const pct = target.length ? pos / target.length * 100 : 0;
   $('lineBar').textContent = bar(pct, 30);
   $('linePct').textContent = Math.round(pct) + '%';
@@ -155,6 +156,7 @@ function celebrateIfLevelUp(before) {
 
 /* ── lesson run ────────────────────────────────────────────── */
 function startLesson(i) {
+  if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
   cur = i; pos = 0; errs = 0; hits = 0; combo = 0; maxCombo = 0; done = false;
   window._errAt = new Set();
   window._lastKeyT = null;
@@ -170,11 +172,16 @@ function startLesson(i) {
 }
 
 document.addEventListener('keydown', e => {
+  // never swallow browser and system shortcuts
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
   const vis = n => !$('view-' + n).hidden;
   if (vis('daily')) return dailyKey(e);
   if (vis('free')) return freeKey(e);
   if (!vis('learn')) return;
   if (e.key.length !== 1 || done) return;
+  // a focused control owns Space and Enter
+  const ae = document.activeElement;
+  if (ae && ae !== document.body && (ae.tagName === 'BUTTON' || ae.tagName === 'INPUT')) return;
   e.preventDefault();
   const exp = target[pos];
   if (exp === undefined) return;
@@ -225,8 +232,7 @@ function finishLesson() {
   log(`${answer} — ${wpm} wpm at ${acc}%, best combo ${maxCombo}`);
 
   celebrateIfLevelUp(lvlBefore);
-  if (cur + 1 < LESSONS.length) setTimeout(() => startLesson(cur + 1), 1900);
-  else setTimeout(() => startLesson(cur), 1900);
+  autoTimer = setTimeout(() => startLesson(cur + 1 < LESSONS.length ? cur + 1 : cur), 1900);
 }
 
 /* ── path / badges / heat ──────────────────────────────────── */
@@ -246,7 +252,7 @@ function renderPath() {
 }
 function badgeHTML() {
   const on = new Set(S.badges);
-  return ACHIEVEMENTS.map(a => `<span class="badge${on.has(a.id) ? ' on' : ''}">${a.label}</span>`).join('');
+  return ACHIEVEMENTS.map(a => `<span class="badge${on.has(a.id) ? ' on' : ''}">${esc(a.label)}</span>`).join('');
 }
 function renderBadges() {
   const html = badgeHTML();
@@ -262,7 +268,7 @@ function renderHeat() {
     const r = v && v.tot > 2 ? v.err / v.tot : 0;
     const d = document.createElement('div');
     const glyph = r > 0 ? RAMP[Math.min(RAMP.length - 1, 1 + Math.round(r * 8))] : '.';
-    d.innerHTML = `${k === ' ' ? '_' : k}<i>${glyph}</i>`;
+    d.innerHTML = `${esc(k === ' ' ? '_' : k)}<i>${glyph}</i>`;
     el.appendChild(d);
   });
   const rows = Object.entries(S.keyStats)
@@ -271,17 +277,19 @@ function renderHeat() {
     .sort((a, b) => b.r - a.r).slice(0, 8);
   $('splits').innerHTML = rows.length
     ? '<table class="splits"><tr><th>key</th><th>density</th><th class="n">errors</th></tr>'
-      + rows.map(x => `<tr><td>${x.k === ' ' ? 'space' : x.k}</td><td><span class="bar">${bar(x.r * 100, 18)}</span></td><td class="n">${Math.round(x.r * 100)}%</td></tr>`).join('')
+      + rows.map(x => `<tr><td>${esc(x.k === ' ' ? 'space' : x.k)}</td><td><span class="bar">${bar(x.r * 100, 18)}</span></td><td class="n">${Math.round(x.r * 100)}%</td></tr>`).join('')
       + '</table>'
     : '<p class="note">No misses recorded yet.</p>';
 }
 function renderHistory() {
   const el = $('history');
-  el.innerHTML = S.history.length ? S.history.map(h => `<span class="no">${h}</span>`).join('') : '<span class="no">no lines yet</span>';
+  el.innerHTML = S.history.length
+    ? S.history.map(h => `<span class="no">${esc(h)}</span>`).join('')
+    : '<span class="no">no lines yet</span>';
 }
 
 /* ── free typing ───────────────────────────────────────────── */
-let fT = null, fPos = 0, fTarget = '', fStart = 0, fHits = 0, fErr = 0, fSecs = 60;
+let fT = null, fPos = 0, fTarget = '', fStart = 0, fHits = 0, fErr = 0, fSecs = 60, fRun = false;
 window._ferr = new Set();
 const freeGen = () => { let s = ''; for (let i = 0; i < 70; i++) s += WORDS[Math.floor(Math.random() * WORDS.length)] + ' '; return s.trim(); };
 function freeRender() {
@@ -297,7 +305,7 @@ function freeRender() {
   el.appendChild(frag);
 }
 function freeKey(e) {
-  if (!fTarget || e.key.length !== 1) return;
+  if (!fRun || !fTarget || e.key.length !== 1) return;
   if (fPos >= fTarget.length) fTarget += ' ' + WORDS[Math.floor(Math.random() * WORDS.length)];
   if (e.key === fTarget[fPos]) { fHits++; clack(S, 1750, .035, 24); field.pulse(.5); }
   else { fErr++; window._ferr.add(fPos); clack(S, 300, .05, 50); field.tear(); }
@@ -306,7 +314,7 @@ function freeKey(e) {
   $('fwHits').textContent = fHits;
 }
 $('freeStart').onclick = () => {
-  fTarget = freeGen(); fPos = 0; fHits = 0; fErr = 0; window._ferr = new Set(); fStart = Date.now();
+  fTarget = freeGen(); fPos = 0; fHits = 0; fErr = 0; window._ferr = new Set(); fStart = Date.now(); fRun = true;
   $('fwWpm').textContent = 0; $('fwAcc').textContent = '100%'; $('fwHits').textContent = 0;
   freeRender(); clearInterval(fT);
   fT = setInterval(() => {
@@ -315,7 +323,7 @@ $('freeStart').onclick = () => {
     $('fwWpm').textContent = mins > .01 ? clampWpm((fHits / 5) / mins) : 0;
     $('fwAcc').textContent = Math.round(fHits / Math.max(1, fHits + fErr) * 100) + '%';
     if (left <= 0) {
-      clearInterval(fT);
+      clearInterval(fT); fRun = false;
       const w = clampWpm((fHits / 5) / Math.max(mins, .05));
       const acc = fHits / Math.max(1, fHits + fErr);
       const earned = fHits >= 20 ? Math.round(Math.min(w, 120) * acc) : 0;
@@ -361,6 +369,7 @@ function dailyTrack() {
   $('ghostRow').textContent = ' '.repeat(col(g)) + (best ? '^' : '');
   $('mineRow').textContent = dStart ? ' '.repeat(col(mine)) + '^' : '';
   $('trackBase').textContent = bar(mine * 100, TRACK);
+  $('dwGhost').textContent = best;
 }
 $('dailyStart').onclick = () => {
   if (S.daily.date !== todayStr()) S.daily = { date: todayStr(), best: 0, last: 0 };
@@ -417,6 +426,9 @@ function selectTab(t) {
     x.tabIndex = on ? 0 : -1;
   });
   ['learn', 'free', 'daily', 'stats', 'quellen'].forEach(v => { $('view-' + v).hidden = t.dataset.t !== v; });
+  // leaving a timed view ends its run
+  if (t.dataset.t !== 'free' && fRun) { clearInterval(fT); fRun = false; }
+  if (t.dataset.t !== 'daily' && dRun) { clearInterval(dT); dRun = false; }
   if (t.dataset.t === 'stats') { renderHeat(); renderBadges(); renderHistory(); }
   if (t.dataset.t === 'daily') { dailyRender(); renderBadges(); }
   if (t.dataset.t === 'learn') { paintKeys(); updateQuest(); }
@@ -474,4 +486,5 @@ updateRail(); updateQuest();
 $('freeLine').innerHTML = '<span class="todo">press run — 60 seconds of german practice words</span>';
 dailyRender();
 save();
+$('checkUpdates').onclick = () => checkForUpdates({ manual: true });
 startUpdateWatch();

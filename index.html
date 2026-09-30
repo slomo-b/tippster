@@ -26,7 +26,7 @@
     <button class="tab" role="tab" id="tab-free" aria-controls="view-free" aria-selected="false" tabindex="-1" data-t="free">[ free ]</button>
     <button class="tab" role="tab" id="tab-daily" aria-controls="view-daily" aria-selected="false" tabindex="-1" data-t="daily">[ daily ]</button>
     <button class="tab" role="tab" id="tab-stats" aria-controls="view-stats" aria-selected="false" tabindex="-1" data-t="stats">[ stats ]</button>
-    <button class="tab" role="tab" id="tab-quellen" aria-controls="view-quellen" aria-selected="false" tabindex="-1" data-t="src">[ src ]</button>
+    <button class="tab" role="tab" id="tab-quellen" aria-controls="view-quellen" aria-selected="false" tabindex="-1" data-t="quellen">[ src ]</button>
   </nav>
 
   <!-- ── learn ─────────────────────────────────────────────── -->
@@ -43,7 +43,6 @@
       </div>
 
       <div class="line" id="line"></div>
-      <div class="pointer" id="pointer" aria-hidden="true"></div>
 
       <div class="read">
         <span>wpm <b id="cWpm">0</b></span>
@@ -65,7 +64,7 @@
     <aside class="side">
       <div class="h-row"><h2 class="h">path</h2><span class="meta" id="pathMeta"></span></div>
       <div class="list" id="path"></div>
-      <div class="h-row" style="margin-top:12px"><h2 class="h">badges</h2><span class="meta" id="badgeMeta"></span></div>
+      <div class="h-row sep"><h2 class="h">badges</h2><span class="meta" id="badgeMeta"></span></div>
       <div class="badges" id="badges"></div>
     </aside>
   </section>
@@ -113,7 +112,7 @@
       <div class="h-row"><h2 class="h">ghost race</h2></div>
       <p class="note">Same text for everyone, seeded from the date. The dim arrow is your best run today; the bright arrow is you, now.</p>
       <p class="note" id="dailyQuest">no run yet today</p>
-      <div class="h-row" style="margin-top:12px"><h2 class="h">badges</h2></div>
+      <div class="h-row sep"><h2 class="h">badges</h2></div>
       <div class="badges" id="badgesDaily"></div>
     </aside>
   </section>
@@ -123,10 +122,10 @@
     <div class="main">
       <div class="h-row"><h2 class="h">key density</h2><span class="meta">glyph = error rate</span></div>
       <p class="note">Each cell is a key. The glyph under it is drawn from the density ramp, so a heavy mark is a heavy key. This is what the daily quest trains.</p>
-      <div class="heat" id="heat" style="margin-top:8px"></div>
-      <div class="h-row" style="margin-top:14px"><h2 class="h">worst keys</h2></div>
+      <div class="heat" id="heat" ></div>
+      <div class="h-row sep"><h2 class="h">worst keys</h2></div>
       <div id="splits"></div>
-      <div class="ctl" style="margin-top:14px">
+      <div class="ctl sep">
         <button class="btn" id="exportBtn">export</button>
         <button class="btn" id="importBtn">import</button>
         <input type="file" id="importFile" accept=".json,application/json" hidden>
@@ -136,7 +135,7 @@
     <aside class="side">
       <div class="h-row"><h2 class="h">badges</h2><span class="meta" id="badgeMeta2"></span></div>
       <div class="badges" id="badges2"></div>
-      <div class="h-row" style="margin-top:12px"><h2 class="h">recent lines</h2></div>
+      <div class="h-row sep"><h2 class="h">recent lines</h2></div>
       <div class="list" id="history"></div>
     </aside>
   </section>
@@ -154,14 +153,14 @@
         <tr><td>eletypes</td><td class="n">badges and heatmap</td></tr>
         <tr><td>typeracer</td><td class="n">racing as motivation</td></tr>
       </table>
-      <p class="note" style="margin-top:10px">Teaching order: f j → d k → s l → a ö → g h → ä → r u → e i → w o → q p t z ü → bottom row → final boss. Two new keys per level, and your own weak keys come up more often.</p>
+      <p class="note sep">Teaching order: f j → d k → s l → a ö → g h → ä → r u → e i → w o → q p t z ü → bottom row → final boss. Two new keys per level, and your own weak keys come up more often.</p>
     </div>
     <aside class="side">
       <div class="h-row"><h2 class="h">runs offline</h2></div>
       <p class="note">Fonts, sound and the live field are bundled. No account, no network, progress on your machine.</p>
-      <div class="h-row" style="margin-top:12px"><h2 class="h">updates</h2></div>
+      <div class="h-row sep"><h2 class="h">updates</h2></div>
       <p class="note">Tippster checks the release feed on start and every four hours, and installs only when you say so.</p>
-      <div class="ctl" style="margin-top:8px"><button class="btn" id="checkUpdates">check for updates</button></div>
+      <div class="ctl" ><button class="btn" id="checkUpdates">check for updates</button></div>
     </aside>
   </section>
 
@@ -175,8 +174,8 @@
   </footer>
 </div>
 
-<div id="log"></div>
-<div id="banner" hidden><h1 id="bannerText">level 2</h1><p>keep going</p></div>
+<div id="log" role="status" aria-live="polite"></div>
+<div id="banner" hidden aria-live="polite"><h1 id="bannerText">level 2</h1><p>keep going</p></div>
 
 <script type="module" src="/src/js/main.js"></script>
 </body>

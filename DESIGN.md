@@ -64,12 +64,13 @@ Two rails, one view, no cards.
 ## Components
 
 - **The line** (`.line`) — the drill text, one span per character. `todo` is `--phos-2`,
-  `done` is `--phos`, `cur` is inverse video, `bad` is inverse in `--phos-2`. Below it a
-  **pointer row** repeats the same string length so the `^` sits under the live
-  character and wraps identically.
+  `done` is `--phos`, `cur` is inverse video, `bad` is inverse in `--phos-2`. The live
+  character carries a `^` in an `::after` positioned off its own bottom edge, so the
+  caret stays welded to its character through any wrap — a separate caret row was tried
+  first and misaligned on wrapped lines.
 - **Progress** (`.bar`) — 30 cells of the ramp; the edge is the brightest glyph.
 - **Readouts** (`.read`) — one horizontal status line: `wpm 42  acc 98%  combo 47
-  goal 3 lines`, numerals in VT323. A status line, never a row of metric tiles.
+  goal 3 lines`, numerals in VT323 at 21px. A status line, never a row of metric tiles.
 - **Key field** (`.key`) — 42px character cells in the same grid. The label plus a ramp
   glyph for that key's error rate. `live` inverts, `hit` fills with `--phos-2`, `miss`
   brightens its rule, `dim` fades keys not in the current lesson.
