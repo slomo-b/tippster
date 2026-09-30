@@ -8,6 +8,8 @@
 </head>
 <body>
 <div id="combo"></div>
+<div id="toasts"></div>
+<div id="levelup"><div class="lvlbox" id="levelupBox"></div></div>
 <div id="overlay"><div class="box" id="overlayBox"></div></div>
 
 <header><div class="hwrap">
@@ -24,6 +26,7 @@
 <nav class="tabs" role="tablist">
   <button type="button" class="tab on" role="tab" aria-selected="true" data-t="learn">🎮 Lernen</button>
   <button type="button" class="tab" role="tab" aria-selected="false" data-t="free">⚡ Freies Tippen</button>
+  <button type="button" class="tab" role="tab" aria-selected="false" data-t="daily">🏁 Challenge</button>
   <button type="button" class="tab" role="tab" aria-selected="false" data-t="stats">📊 Stats & Badges</button>
   <button type="button" class="tab" role="tab" aria-selected="false" data-t="quellen">📚 Quellen</button>
 </nav>
@@ -73,6 +76,33 @@
     <div class="statsrow"><div class="stat"><b id="fWpm">0</b><span>WPM</span></div><div class="stat"><b id="fAcc">100%</b><span>Genauigkeit</span></div><div class="stat"><b id="fTime">60</b><span>Sekunden</span></div></div>
   </div>
   <div class="card"><h2>Warum das funktioniert</h2><p class="sub">Live-WPM + Genauigkeit (Monkeytype), schwächste Taste wird übergewichtet (Keybr), Streak-Verzeihung (Duolingo). Details unter Quellen.</p><div class="quest">🏆 Fordere dich: 40 WPM + 95% = Speed-Badge. 60 WPM = Ninja.</div></div>
+</section>
+
+<!-- DAILY / GHOST -->
+<section id="view-daily" class="grid" style="display:none">
+  <div class="card">
+    <h2>🏁 Tages-Challenge</h2>
+    <p class="sub">Gleicher Text für alle, jeden Tag neu (Datum als Seed). Schlag deinen Ghost!</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+      <button class="btn" id="dailyStart">Start</button>
+      <span class="hint" id="dailyBest">Bestwert heute: —</span>
+    </div>
+    <div class="ghosttrack"><div class="ghostfill" id="ghostFill"></div><div class="ghostmark" id="ghostMark">👻</div></div>
+    <div id="dailyText"></div>
+    <div class="statsrow">
+      <div class="stat"><b id="dWpm">0</b><span>WPM</span></div>
+      <div class="stat"><b id="dAcc">100%</b><span>Genauigkeit</span></div>
+      <div class="stat"><b id="dGhost">0</b><span>Ghost-WPM</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Ghost-Race 🐇</h2>
+    <p class="sub">Du trittst gegen deinen eigenen Bestwert an — der stärkste lokale Motivator (TypeRacer-Prinzip, ganz ohne Server).</p>
+    <div class="quest" id="dailyQuest">Heute noch nicht gefahren.</div>
+    <h2 style="margin-top:16px">Badges</h2>
+    <p class="sub"><span id="badgeCount">0</span> freigeschaltet</p>
+    <div id="badgesDaily"></div>
+  </div>
 </section>
 
 <!-- STATS -->

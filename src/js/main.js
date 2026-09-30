@@ -5,11 +5,13 @@ import '@fontsource/jetbrains-mono/latin-400.css';
 import '@fontsource/jetbrains-mono/latin-700.css';
 import { LESSONS, FINGER, FCOL, FNAME, ROWS, WORDS } from './lessons.js';
 import { loadState, saveState, touchStreak, levelFor, unlockFor, resumeLesson } from './store.js';
-import { weakKeys, genText, starsFor } from './stats.js';
+import { weakKeys, genText, starsFor, clampWpm, MAX_WPM } from './stats.js';
 import { recordKeystroke, lessonsToGoal, rollingAcc } from './adaptive.js';
 import { sHit, sErr, sLvl, tone } from './audio.js';
-import { confetti, gsap, levelUpBurst, comboFx, tweenXP, popKeyEl } from './fx.js';
+import { confetti, gsap, levelUpBurst, comboFx, tweenXP, popKeyEl, toast, celebrateLevel } from './fx.js';
 import { checkForUpdates } from './updater.js';
+import { ACHIEVEMENTS, TOTAL_ACHIEVEMENTS, evaluate as evaluateAchievements, buildContext } from './achievements.js';
+import { dailyText, ghostProgress } from './daily.js';
 
 const S = loadState();
 // M2: Schreiben entkoppeln — nicht bei jedem Anschlag JSON.stringify+write.
@@ -21,6 +23,30 @@ const save = () => {
 };
 let cur = 0, pos = 0, target = '', startT = 0, errs = 0, hits = 0, combo = 0, maxCombo = 0, done = false;
 window._errAt = new Set();
+
+// ---- C1: Achievements ----
+const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const lessonsDone = () => Object.keys(S.lessonStars).length;
+function bossStats() {
+  const idx = LESSONS.map((l, i) => ({ l, i })).filter(x => x.l.boss).map(x => x.i);
+  return { total: idx.length, done: idx.filter(i => S.lessonStars[i]).length };
+}
+function runAchievements({ wpm, acc, hits, isBoss = false, maxCombo: mc = 0 }) {
+  const b = bossStats();
+  const ctx = buildContext({
+    wpm, acc, hits, maxCombo: mc, streak: S.streak.count, stars: S.stars, isBoss,
+    lessonsDone: lessonsDone(), lessonTotal: LESSONS.length, bossesDone: b.done, bossTotal: b.total
+  });
+  const fresh = evaluateAchievements(ctx, S.badges);
+  fresh.forEach(a => { S.badges.push(a.id); toast(`🏅 <b>${a.label}</b>`); });
+  if (fresh.length) confetti({ particleCount: 50, origin: { y: .25 } });
+  return fresh;
+}
+function celebrateIfLevelUp(before) {
+  const after = levelFor(S.xp);
+  if (after > before) { sLvl(S); celebrateLevel(after); }
+  else levelUpBurst();
+}
 
 function renderText() {
   const el = document.getElementById('textFlow'); el.innerHTML = '';
@@ -77,10 +103,10 @@ function popKey(ch, ok) {
   popKeyEl(el, ok);
 }
 document.addEventListener('keydown', e => {
-  const learnVisible = document.getElementById('view-learn').style.display !== 'none';
-  const freeVisible = document.getElementById('view-free').style.display !== 'none';
-  if (freeVisible && !learnVisible) return handleFreeKey(e);
-  if (!learnVisible) return;
+  const visible = n => document.getElementById('view-' + n).style.display !== 'none';
+  if (visible('daily')) return handleDailyKey(e);
+  if (visible('free')) return handleFreeKey(e);
+  if (!visible('learn')) return;
   if (e.key.length !== 1) return; // nur druckbare Zeichen (Backspace/Escape/Pfeile ausgenommen)
   if (done) return;
   e.preventDefault();
@@ -107,21 +133,23 @@ document.addEventListener('keydown', e => {
   }
   const mins = (Date.now() - startT) / 60000;
   document.getElementById('sAcc').textContent = Math.round(hits / Math.max(1, hits + errs) * 100) + '%';
-  document.getElementById('sWpm').textContent = mins > .01 ? Math.round((hits / 5) / mins) : 0;
+  document.getElementById('sWpm').textContent = mins > .01 ? clampWpm((hits / 5) / mins) : 0;
   document.getElementById('sCombo').textContent = combo;
   updateHUD(); save();
 });
 function finishLesson() {
   done = true;
-  const mins = (Date.now() - startT) / 60000, wpm = Math.round((hits / 5) / Math.max(mins, .05)), acc = Math.round(hits / Math.max(1, hits + errs) * 100);
+  const mins = (Date.now() - startT) / 60000, wpm = clampWpm((hits / 5) / Math.max(mins, .05)), acc = Math.round(hits / Math.max(1, hits + errs) * 100);
   const st = starsFor(acc, wpm);
+  const lvlBefore = levelFor(S.xp);
   S.stars += st; S.xp += 20 * st + (LESSONS[cur].boss ? 50 : 0);
   S.lessonStars[cur] = Math.max(S.lessonStars[cur] || 0, st);
   S.unlocked = unlockFor(cur, S.unlocked, LESSONS.length);
   S.history.unshift(`${new Date().toLocaleDateString('de-DE')} L${cur + 1}: ${wpm} WPM, ${acc}%, ${st}⭐`); S.history = S.history.slice(0, 12);
-  touchStreak(S); award(acc, wpm);
-  save(); updateHUD(); renderLevels(); renderBadges(); renderHeat();
-  sLvl(S); levelUpBurst();
+  touchStreak(S);
+  runAchievements({ wpm, acc, hits, isBoss: !!LESSONS[cur].boss, maxCombo });
+  saveNow(); updateHUD(); renderLevels(); renderBadges(); renderHeat();
+  celebrateIfLevelUp(lvlBefore);
   const box = document.getElementById('overlayBox');
   const weak = weakKeys(S.keyStats);
   box.innerHTML = `<h1>${LESSONS[cur].boss ? '👑 BOSS BESIEGT!' : '🎉 Geschafft!'}</h1>
@@ -136,14 +164,6 @@ function finishLesson() {
   document.getElementById('ovNext').onclick = () => { document.getElementById('overlay').style.display = 'none'; if (cur + 1 < LESSONS.length) startLesson(cur + 1); };
   document.getElementById('ovAgain').onclick = () => { document.getElementById('overlay').style.display = 'none'; startLesson(cur); };
 }
-function award(acc, wpm) {
-  const add = (id) => { if (!S.badges.includes(id)) { S.badges.push(id); confetti({ particleCount: 40, origin: { y: .3 } }); } };
-  if (maxCombo >= 25) add('c25'); if (maxCombo >= 50) add('c50');
-  if (acc >= 95) add('a95'); if (acc === 100) add('a100');
-  if (wpm >= 40) add('w40'); if (wpm >= 60) add('w60');
-  if (S.streak.count >= 3) add('s3'); if (S.streak.count >= 7) add('s7');
-}
-const BADGE_LABEL = { c25: '🔥 Combo x25', c50: '☄️ Combo x50', a95: '🎯 95% Präzision', a100: '💎 100% fehlerfrei', w40: '⚡ 40 WPM', w60: '🥷 60 WPM Ninja', s3: '🔥 3-Tage-Streak', s7: '🏆 7-Tage-Streak' };
 function updateHUD() {
   document.getElementById('lvlLabel').textContent = 'Level ' + levelFor(S.xp);
   document.getElementById('xpLabel').textContent = S.xp + ' XP';
@@ -171,9 +191,14 @@ function renderLevels() {
   });
 }
 function renderBadges() {
-  const h = S.badges.length ? S.badges.map(b => `<span class="badge">${BADGE_LABEL[b] || b}</span>`).join('') : '<span class="hint">Noch keine — spiel 1 Lektion!</span>';
-  document.getElementById('badges').innerHTML = '<b>Badges:</b><br>' + h;
-  document.getElementById('badges2').innerHTML = h;
+  const unlocked = new Set(S.badges);
+  const cells = ACHIEVEMENTS.map(a =>
+    `<span class="badge${unlocked.has(a.id) ? '' : ' locked'}" title="${a.group}">${a.label}</span>`).join('');
+  const grid = `<div class="badges-grid">${cells}</div>`;
+  document.getElementById('badges').innerHTML = `<b>${unlocked.size}/${TOTAL_ACHIEVEMENTS} Badges</b>${grid}`;
+  document.getElementById('badges2').innerHTML = grid;
+  const bd = document.getElementById('badgesDaily'); if (bd) bd.innerHTML = grid;
+  const bc = document.getElementById('badgeCount'); if (bc) bc.textContent = `${unlocked.size}/${TOTAL_ACHIEVEMENTS}`;
   document.getElementById('history').innerHTML = S.history.join('<br>') || 'Noch kein Verlauf.';
 }
 function renderHeat() {
@@ -213,7 +238,7 @@ document.getElementById('freeStart').onclick = () => {
     const el = Date.now() - fStart; const left = Math.max(0, Math.ceil(fSecs - el / 1000));
     document.getElementById('fTime').textContent = left;
     const mins = el / 60000;
-    document.getElementById('fWpm').textContent = mins > .01 ? Math.round((fHits / 5) / mins) : 0;
+    document.getElementById('fWpm').textContent = mins > .01 ? clampWpm((fHits / 5) / mins) : 0;
     document.getElementById('fAcc').textContent = Math.round(fHits / Math.max(1, fHits + fErr) * 100) + '%';
     if (left <= 0) {
       clearInterval(fT);
@@ -221,21 +246,95 @@ document.getElementById('freeStart').onclick = () => {
       const acc = fHits / Math.max(1, fHits + fErr);
       // M7: XP an Leistung koppeln, nicht an rohe WPM; Mindestmenge verhindert Farmen.
       const earned = fHits >= 20 ? Math.min(w, 120) * acc : 0;
+      const lvlBefore = levelFor(S.xp);
       S.xp += Math.round(earned);
-      touchStreak(S); saveNow(); updateHUD();
-      if (window.confetti && earned > 0) confetti({ particleCount: 100, spread: 70 });
-      alert(earned > 0
-        ? `Zeit um! ${w} WPM, ${Math.round(acc * 100)}% — +${Math.round(earned)} XP`
-        : 'Zeit um! Zu wenig getippt für XP — 20 Treffer nötig.');
+      touchStreak(S);
+      runAchievements({ wpm: w, acc: Math.round(acc * 100), hits: fHits, isBoss: false });
+      saveNow(); updateHUD(); renderBadges();
+      celebrateIfLevelUp(lvlBefore);
+      toast(earned > 0
+        ? `⏱️ ${w} WPM, ${Math.round(acc * 100)} % — +${Math.round(earned)} XP`
+        : '⏱️ Zu wenig getippt für XP (20 Treffer nötig)');
     }
   }, 250);
 };
 document.querySelectorAll('[data-time]').forEach(b => b.onclick = () => { fSecs = parseInt(b.dataset.time); document.getElementById('fTime').textContent = fSecs; });
+
+// ---- C2: Tages-Challenge + Ghost-Race ----
+let dTarget = '', dPos = 0, dHits = 0, dErr = 0, dStart = 0, dTimer = null, dRunning = false;
+window._derr = new Set();
+if (!S.daily || S.daily.date !== todayStr()) S.daily = { date: todayStr(), best: 0, last: 0 };
+
+function dailyBestLabel() {
+  const el = document.getElementById('dailyBest');
+  if (el) el.textContent = S.daily.best ? `Bestwert heute: ${S.daily.best} WPM` : 'Bestwert heute: —';
+}
+function renderDailyText() {
+  const el = document.getElementById('dailyText');
+  if (!el) return;
+  if (!dTarget) { el.innerHTML = `<span class="todo">Drücke Start — Text für ${todayStr()}</span>`; return; }
+  el.innerHTML = '';
+  [...dTarget].forEach((c, i) => {
+    const sp = document.createElement('span');
+    sp.textContent = c;
+    sp.className = i < dPos ? (window._derr.has(i) ? 'err' : 'done') : (i === dPos ? 'cur' : 'todo');
+    el.appendChild(sp);
+  });
+}
+function updateGhost() {
+  const best = S.daily.best || 0, len = dTarget.length || 1;
+  let pct = 0;
+  if (best && dStart) pct = ghostProgress(Date.now() - dStart, best, len) * 100;
+  document.getElementById('ghostFill').style.width = pct + '%';
+  document.getElementById('ghostMark').style.left = pct + '%';
+  document.getElementById('dGhost').textContent = best;
+}
+document.getElementById('dailyStart').onclick = () => {
+  if (S.daily.date !== todayStr()) S.daily = { date: todayStr(), best: 0, last: 0 };
+  dTarget = dailyText(todayStr(), WORDS, 45);
+  dPos = 0; dHits = 0; dErr = 0; window._derr = new Set(); dStart = Date.now(); dRunning = true;
+  renderDailyText(); dailyBestLabel(); updateGhost(); clearInterval(dTimer);
+  dTimer = setInterval(() => {
+    const el = Date.now() - dStart, mins = el / 60000;
+    document.getElementById('dWpm').textContent = mins > .01 ? clampWpm((dHits / 5) / mins) : 0;
+    document.getElementById('dAcc').textContent = Math.round(dHits / Math.max(1, dHits + dErr) * 100) + '%';
+    updateGhost();
+  }, 200);
+};
+function handleDailyKey(e) {
+  if (!dRunning || e.key.length !== 1 || dPos >= dTarget.length) return;
+  if (e.key === dTarget[dPos]) { dHits++; dPos++; tone(S, 700, .04, 'square', .02); }
+  else { dErr++; window._derr.add(dPos); dPos++; tone(S, 140, .12, 'sawtooth', .04); }
+  renderDailyText();
+  if (dPos >= dTarget.length) finishDaily();
+}
+function finishDaily() {
+  dRunning = false; clearInterval(dTimer);
+  const mins = (Date.now() - dStart) / 60000;
+  const wpm = clampWpm((dHits / 5) / Math.max(mins, .05));
+  const acc = Math.round(dHits / Math.max(1, dHits + dErr) * 100);
+  const prevBest = S.daily.best;
+  const isRecord = wpm > prevBest;
+  if (isRecord) S.daily.best = wpm;
+  S.daily.last = wpm;
+  const earned = Math.round(Math.min(wpm, 120) * (acc / 100));
+  const lvlBefore = levelFor(S.xp);
+  S.xp += earned;
+  touchStreak(S);
+  runAchievements({ wpm, acc, hits: dHits, isBoss: false });
+  saveNow(); updateHUD(); renderBadges(); dailyBestLabel(); updateGhost();
+  document.getElementById('dailyQuest').innerHTML = isRecord
+    ? `🥇 <b>Neuer Tagesrekord: ${wpm} WPM</b> (${acc} %) — +${earned} XP`
+    : `${wpm} WPM (${acc} %) gegen Ghost ${prevBest} — +${earned} XP`;
+  celebrateIfLevelUp(lvlBefore);
+  if (isRecord) confetti({ particleCount: 130, spread: 80, origin: { y: .5 } });
+}
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
   document.querySelectorAll('.tab').forEach(x => { x.classList.remove('on'); x.setAttribute('aria-selected', 'false'); });
   t.classList.add('on'); t.setAttribute('aria-selected', 'true');
-  ['learn','free','stats','quellen'].forEach(v => document.getElementById('view-' + v).style.display = t.dataset.t === v ? 'grid' : 'none');
+  ['learn','free','daily','stats','quellen'].forEach(v => document.getElementById('view-' + v).style.display = t.dataset.t === v ? 'grid' : 'none');
   if (t.dataset.t === 'stats') { renderHeat(); renderBadges(); }
+  if (t.dataset.t === 'daily') { renderDailyText(); dailyBestLabel(); updateGhost(); renderBadges(); }
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
@@ -276,6 +375,6 @@ document.getElementById('importFile').onchange = (ev) => {
 };
 window.addEventListener('beforeunload', saveNow);
 
-buildKbd(); renderLevels(); renderBadges(); renderHeat();
+buildKbd(); renderLevels(); renderBadges(); renderHeat(); renderDailyText(); dailyBestLabel();
 startLesson(resumeLesson(S.unlocked, LESSONS.length)); updateHUD(); save();
 checkForUpdates();

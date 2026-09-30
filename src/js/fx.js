@@ -32,3 +32,29 @@ export function popKeyEl(el, ok) {
   el.classList.remove('hit', 'miss'); void el.offsetWidth; el.classList.add(ok ? 'hit' : 'miss');
   setTimeout(() => el.classList.remove('hit', 'miss'), 220);
 }
+
+// C1: Badge-Toast
+export function toast(html) {
+  const wrap = document.getElementById('toasts');
+  if (!wrap) return;
+  const el = document.createElement('div');
+  el.className = 'toast'; el.innerHTML = html;
+  wrap.appendChild(el);
+  if (!REDUCED) gsap.fromTo(el, { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: .3, ease: 'back.out(2)' });
+  setTimeout(() => {
+    if (REDUCED) { el.remove(); return; }
+    gsap.to(el, { x: 60, opacity: 0, duration: .3, onComplete: () => el.remove() });
+  }, 3200);
+}
+
+// C4: Level-Up-Feier
+export function celebrateLevel(level) {
+  const wrap = document.getElementById('levelup');
+  const box = document.getElementById('levelupBox');
+  if (!wrap || !box) return;
+  box.innerHTML = `<h1>LEVEL ${level}</h1><p>Weiter so! 🔥</p>`;
+  wrap.style.display = 'grid';
+  levelUpBurst();
+  if (!REDUCED) gsap.fromTo(box, { scale: .6, opacity: 0, rotate: -6 }, { scale: 1, opacity: 1, rotate: 0, duration: .5, ease: 'back.out(2)' });
+  setTimeout(() => { wrap.style.display = 'none'; }, 1800);
+}

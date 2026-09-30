@@ -8,6 +8,7 @@ export function loadState() {
     xp: S.xp || 0, stars: S.stars || 0, unlocked: S.unlocked || 1,
     keyStats: S.keyStats || {}, badges: S.badges || [], history: S.history || [],
     lessonStars: S.lessonStars || {},
+    daily: S.daily || { date: '', best: 0, last: 0 },
     streak: S.streak || { count: 0, last: '' }, sound: S.sound !== false
   });
   // Migration V1 -> V2: rolling-Fenster für Adaptive Engine nachrüsten

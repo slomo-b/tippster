@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { weakKeys, starsFor, genText } from '../src/js/stats.js';
+import { weakKeys, starsFor, genText, clampWpm, MAX_WPM } from '../src/js/stats.js';
 import { LESSONS } from '../src/js/lessons.js';
 
 describe('weakKeys', () => {
@@ -17,6 +17,19 @@ describe('starsFor', () => {
     expect(starsFor(97, 15)).toBe(3);
   });
 });
+describe('clampWpm', () => {
+  test('deckelt unrealistische Werte', () => {
+    expect(clampWpm(840)).toBe(MAX_WPM);
+    expect(clampWpm(60)).toBe(60);
+  });
+  test('fängt Unsinn ab', () => {
+    expect(clampWpm(-5)).toBe(0);
+    expect(clampWpm(NaN)).toBe(0);
+    expect(clampWpm(Infinity)).toBe(MAX_WPM);
+  });
+  test('rundet', () => { expect(clampWpm(41.6)).toBe(42); });
+});
+
 describe('genText', () => {
   test('Lektion 0 nutzt nur f/j', () => {
     const t = genText(0, LESSONS, {});

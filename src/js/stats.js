@@ -25,3 +25,10 @@ export function genText(li, LESSONS, keyStats) {
   return s.trim().slice(0, 220);
 }
 export function starsFor(acc, wpm) { let s = 1; if (acc >= 90) s = 2; if (acc >= 96 && wpm >= 12) s = 3; return s; }
+
+// WPM plausibel halten: synthetisch/instantanes Tippen darf keine Rekorde erzeugen.
+export const MAX_WPM = 250;
+export function clampWpm(w) {
+  if (typeof w !== 'number' || Number.isNaN(w) || w < 0) return 0;
+  return Math.min(MAX_WPM, Math.round(w));
+}
