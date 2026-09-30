@@ -12,7 +12,7 @@ import { weakKeys, genText, starsFor, clampWpm } from './stats.js';
 import { recordKeystroke, lessonsToGoal, rollingAcc } from './adaptive.js';
 import { sHit, sErr, sLvl, clack } from './audio.js';
 import { flipCell, cascade, log, banner, markCounter } from './fx.js';
-import { checkForUpdates } from './updater.js';
+import { checkForUpdates, startUpdateWatch } from './updater.js';
 import { ACHIEVEMENTS, TOTAL_ACHIEVEMENTS, GROUP_ICON, evaluate as evaluateAchievements, buildContext } from './achievements.js';
 import { dailyText, ghostProgress } from './daily.js';
 
@@ -517,4 +517,4 @@ startLesson(resumeLesson(S.unlocked, LESSONS.length));
 updateRail(); paintWeakness(); dailyRender();
 document.getElementById('freeLine').innerHTML = '<span class="todo">Press start — 60 seconds of German practice words</span>';
 save();
-checkForUpdates();
+startUpdateWatch();

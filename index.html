@@ -183,6 +183,11 @@
       <p class="note">F J → D K → S L → A Ö → G H → Ä → R U → E I → W O → Q P T Z Ü → bottom row → final boss. Two new keys per level, and your own weak keys come up more often.</p>
       <div class="head" style="margin-top:16px"><h2>Built offline</h2></div>
       <p class="note">Fonts, sound and motion are bundled. No network at runtime, no account, progress on your machine.</p>
+      <div class="head" style="margin-top:16px"><h2>Updates</h2></div>
+      <p class="note">Tippster checks the release feed on start and every four hours, and installs only when you say so.</p>
+      <div class="controls" style="margin-top:8px">
+        <button class="plate quiet" id="checkUpdates"><svg><use href="#i-refresh"/></svg>Check for updates</button>
+      </div>
     </aside>
   </section>
 
@@ -192,6 +197,7 @@
     <span class="meta"><svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.7;vertical-align:-2px"><use href="#i-flame"/></svg> <span id="fStreak">0</span> days</span>
     <span class="meta"><svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.7;vertical-align:-2px"><use href="#i-star"/></svg> <span id="fStars">0</span></span>
     <span class="meta" id="fXp">0 XP</span>
+    <button class="plate quiet" id="updateBtn" hidden style="padding:4px 10px"><svg><use href="#i-down"/></svg><span>Update</span></button>
     <button class="plate quiet" id="soundBtn" style="margin-left:auto;padding:4px 10px"><svg><use href="#i-sound"/></svg>Sound</button>
   </footer>
 </div>
