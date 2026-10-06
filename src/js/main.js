@@ -9,7 +9,7 @@ import { recordKeystroke, lessonsToGoal, rollingAcc } from './adaptive.js';
 import { sHit, sErr, sLvl, clack } from './audio.js';
 import { createField } from './field.js';
 import { bar, scramble, log, flash, RAMP } from './fx.js';
-import { checkForUpdates, startUpdateWatch } from './updater.js';
+import { startUpdateWatch } from './updater.js';
 import { ACHIEVEMENTS, TOTAL_ACHIEVEMENTS, evaluate as evaluateAchievements, buildContext } from './achievements.js';
 import { dailyText, ghostProgress } from './daily.js';
 
@@ -486,5 +486,4 @@ updateRail(); updateQuest();
 $('freeLine').innerHTML = '<span class="todo">press run — 60 seconds of german practice words</span>';
 dailyRender();
 save();
-$('checkUpdates').onclick = () => checkForUpdates({ manual: true });
 startUpdateWatch();

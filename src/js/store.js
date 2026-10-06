@@ -9,7 +9,8 @@ export function loadState() {
     keyStats: S.keyStats || {}, badges: S.badges || [], history: S.history || [],
     lessonStars: S.lessonStars || {},
     daily: S.daily || { date: '', best: 0, last: 0 },
-    streak: S.streak || { count: 0, last: '' }, sound: S.sound !== false
+    streak: S.streak || { count: 0, last: '' }, sound: S.sound !== false,
+    autoUpdate: S.autoUpdate === true
   });
   // Migration V1 -> V2: add the rolling window required by the adaptive engine
   for (const k of Object.keys(S.keyStats)) {

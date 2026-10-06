@@ -44,8 +44,10 @@ jobs:
             fonts and effects are bundled. Your progress stays on your machine.
 
             ### Auto-update
-            Installs are signed; Tippster checks this repository for new versions
-            on start and offers to update in place.
+            Installs are signed. Tippster checks this repository on start, every four
+            hours, and when the window regains focus, then offers the new version in
+            its footer. Turn on **install updates automatically** in the app if you
+            would rather it just happened.
 
             ### What is inside
             12 lessons that unlock as you go (F J → D K → S L → A Ö → G H → Ä →
@@ -56,5 +58,5 @@ jobs:
 
             5 minutes a day is enough. Built on lessons from Monkeytype, Keybr
             and Tipp10.
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
