@@ -1,21 +1,30 @@
 // Auto-update. Only inside the Tauri shell; in the browser this is inert.
 //
-// The chain: a tag pushed to the repository makes CI build signed installers and
-// publish a release. The app fetches that release's latest.json, compares the version
-// to its own, and either offers the install in the footer or — if "install updates
-// automatically" is on — downloads and runs it without asking.
+// The chain: a tag pushed to the repository makes CI build signed installers and publish
+// a release. The app fetches that release's latest.json and compares the version to its
+// own. Auto-update is ON by default, but it waits for a pause in your typing before it
+// downloads and restarts — it never interrupts a line.
 import { log } from './fx.js';
 import { loadState, saveState } from './store.js';
+
+const QUIET_MS = 45_000;      // a pause this long counts as "not typing"
+const POLL_MS = 15_000;       // how often we look for that pause
 
 let pending = null;
 let checking = false;
 let announced = null;
 let installing = false;
+let lastActivity = Date.now();
+let deferredLogged = false;
 
 const S = loadState();
 const plate = () => document.getElementById('updateBtn');
 const checkPlate = () => document.getElementById('checkUpdates');
 const autoBox = () => document.getElementById('autoUpdate');
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('keydown', () => { lastActivity = Date.now(); }, { passive: true });
+}
 
 function offer(update) {
   const b = plate();
@@ -45,16 +54,30 @@ export async function checkForUpdates({ manual = false } = {}) {
     offer(update);
     if (announced !== update.version) {
       announced = update.version;
-      log(`version ${update.version} is available`);
+      deferredLogged = false;
+      log(`version ${update.version} available`);
     }
     if (manual) log(`version ${update.version} available`);
-    if (S.autoUpdate) await installUpdate();
+    await maybeAutoInstall();
   } catch (e) {
     if (manual) log('update check failed — no network?');
     console.warn('update check failed:', e);
   } finally {
     checking = false;
   }
+}
+
+/** Auto-update waits for a pause: a restart mid-line would be rude. */
+export async function maybeAutoInstall() {
+  if (!S.autoUpdate || !pending || installing) return;
+  if (Date.now() - lastActivity < QUIET_MS) {
+    if (!deferredLogged) {
+      deferredLogged = true;
+      log(`version ${pending.version} installs at your next pause`);
+    }
+    return;
+  }
+  await installUpdate();
 }
 
 /** Download and run the signed installer. Windows restarts the app when it finishes. */
@@ -92,8 +115,8 @@ export function setAutoUpdate(on) {
   saveState(S);
   const box = autoBox();
   if (box) box.checked = S.autoUpdate;
-  log(S.autoUpdate ? 'updates will install themselves' : 'updates will ask first');
-  if (S.autoUpdate && pending) installUpdate();
+  log(S.autoUpdate ? 'updates install themselves at a pause' : 'updates will ask first');
+  if (S.autoUpdate) maybeAutoInstall();
 }
 
 /** Poll on start, every four hours, and when the window regains focus. */
@@ -109,9 +132,11 @@ export function startUpdateWatch() {
   if (!('__TAURI_INTERNALS__' in window)) return;
   checkForUpdates();
   setInterval(() => checkForUpdates(), 4 * 60 * 60 * 1000);
+  setInterval(maybeAutoInstall, POLL_MS);
   let last = 0;
   window.addEventListener('focus', () => {
     const now = Date.now();
     if (now - last > 10 * 60 * 1000) { last = now; checkForUpdates(); }
   });
 }
+
