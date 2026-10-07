@@ -10,6 +10,10 @@ jobs:
     permissions:
       contents: write
     runs-on: windows-latest
+    # Secrets cannot be referenced inside `if:` — mirror them into env and test that instead.
+    env:
+      WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+      WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -25,12 +29,12 @@ jobs:
       - run: npm ci
       - run: npm test
       - name: Import the Windows code-signing certificate
-        if: ${{ secrets.WINDOWS_CERTIFICATE != '' }}
+        if: ${{ env.WINDOWS_CERTIFICATE != '' }}
         shell: pwsh
         run: |
           $pfx = Join-Path $env:RUNNER_TEMP 'cert.pfx'
-          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String("${{ secrets.WINDOWS_CERTIFICATE }}"))
-          $pw = ConvertTo-SecureString "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}" -Force -AsPlainText
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
+          $pw = ConvertTo-SecureString $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText
           $c = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $pw
           "TAURI_WINDOWS_CERT_THUMBPRINT=$($c.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Sign the installers if a certificate is present
