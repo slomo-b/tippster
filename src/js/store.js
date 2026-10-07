@@ -1,6 +1,12 @@
 const KEY = 'tippster_v1';
 const store = (typeof localStorage !== 'undefined') ? localStorage : null;
+
+// One shared state object. Two modules each holding their own copy of the state means
+// whichever saves last wins — which silently reverted a user's setting on every keystroke.
+let CURRENT = null;
+
 export function loadState() {
+  if (CURRENT) return CURRENT;
   let raw = '{}';
   try { raw = (store && store.getItem(KEY)) || '{}'; } catch (e) { raw = '{}'; }
   const S = JSON.parse(raw);
@@ -18,9 +24,16 @@ export function loadState() {
     if (!Array.isArray(e.recent)) e.recent = [];
     if (!Array.isArray(e.lat)) e.lat = [];
   }
-  return S;
+  CURRENT = S;
+  return CURRENT;
 }
-export function saveState(S) { try { store && store.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+// The importer replaces the whole record and reloads; anything in memory is obsolete.
+export function replaceState(next) {
+  CURRENT = next;
+  try { store && store.setItem(KEY, JSON.stringify(next)); } catch (e) {}
+  return CURRENT;
+}
+export function saveState(S) { try { store && store.setItem(KEY, JSON.stringify(S || CURRENT || {})); } catch (e) {} }
 
 // Local date (not UTC!) — otherwise the streak day flips during the night.
 export function localDay(d = new Date()) {

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { localDay, dayBefore, touchStreak, unlockFor, resumeLesson, loadState } from '../src/js/store.js';
+import { localDay, dayBefore, touchStreak, unlockFor, resumeLesson, loadState, replaceState } from '../src/js/store.js';
 
 describe('localDay', () => {
   test('uses local time, not UTC', () => {
@@ -64,5 +64,27 @@ describe('loadState migration', () => {
   test('lessonStars is backfilled', () => {
     const S = loadState();
     expect(S.lessonStars).toBeTypeOf('object');
+  });
+});
+
+describe('shared state', () => {
+  // Two modules each holding their own copy meant the last save won, which silently
+  // reverted a setting (auto-update) on the next keystroke.
+  test('every caller gets the same object', () => {
+    expect(loadState()).toBe(loadState());
+  });
+  test('replaceState swaps the shared object', () => {
+    const before = loadState();
+    const next = replaceState({ ...before, autoUpdate: false });
+    expect(loadState()).toBe(next);
+    expect(loadState().autoUpdate).toBe(false);
+    replaceState({ ...next, autoUpdate: true });
+  });
+  test('a write through one reference is visible through another', () => {
+    const a = loadState();
+    const b = loadState();
+    a.sound = false;
+    expect(b.sound).toBe(false);
+    a.sound = true;
   });
 });

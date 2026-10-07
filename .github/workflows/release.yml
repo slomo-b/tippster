@@ -12,6 +12,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0          # release notes need the tags and history behind them
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -33,6 +35,36 @@ jobs:
           "TAURI_WINDOWS_CERT_THUMBPRINT=$($c.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Sign the installers if a certificate is present
         run: node scripts/set-thumbprint.mjs
+      - name: Release notes from the commits since the last tag
+        id: notes
+        shell: bash
+        run: |
+          prev=$(git tag --sort=-v:refname | grep -vx "$GITHUB_REF_NAME" | head -n1 || true)
+          if [ -n "$prev" ]; then range="$prev..HEAD"; else range="HEAD"; fi
+          out="$RUNNER_TEMP/notes.md"
+          {
+            echo "## Tippster $GITHUB_REF_NAME"
+            echo
+            echo "Touch typing, but gamified. For lazy sloperators whose typing is the real"
+            echo "development bottleneck."
+            echo
+            echo "### What changed"
+            git log --no-merges --pretty=format:'- %s'
+            echo
+            echo
+            echo "### Download"
+            echo "- **\`Tippster_..._x64-setup.exe\`** — Windows installer, no admin needed"
+            echo "- **\`Tippster_..._x64_en-US.msi\`** — MSI for managed installs"
+            echo
+            echo "Updates install themselves at your next pause. Untick it in the Sources tab"
+            echo "to be asked first. The first run may show a Windows SmartScreen prompt —"
+            echo "see the README for why and how to get past it."
+          } > "$out"
+          {
+            echo 'body<<__NOTES_END__'
+            cat "$out"
+            echo '__NOTES_END__'
+          } >> "$GITHUB_OUTPUT"
       - name: Build Tippster and create the release
         uses: tauri-apps/tauri-action@v0
         env:
@@ -41,32 +73,6 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Tippster ${{ github.ref_name }}'
-          releaseBody: |
-            ## Tippster ${{ github.ref_name }}
-
-            Touch typing, but gamified. For lazy sloperators whose typing is the real
-            development bottleneck.
-
-            ### Download
-            - **`Tippster_..._x64-setup.exe`** — Windows installer (recommended)
-            - **`Tippster_..._x64_en-US.msi`** — Windows MSI for managed installs
-
-            No admin rights needed for the NSIS installer. Runs fully offline —
-            fonts and effects are bundled. Your progress stays on your machine.
-
-            ### Auto-update
-            Installs are signed, and updates install themselves at your next pause —
-            they never interrupt a line. Untick **install updates automatically** in
-            the Sources tab if you would rather be asked first.
-
-            ### What is inside
-            12 lessons that unlock as you go (F J → D K → S L → A Ö → G H → Ä →
-            R U → E I → W O → Q P T Z Ü → bottom row → final boss), an adaptive
-            engine that over-weights your weakest key, XP, streaks, combos,
-            23 badges, boss fights, and a daily challenge with a ghost race
-            against your own best run.
-
-            5 minutes a day is enough. Built on lessons from Monkeytype, Keybr
-            and Tipp10.
+          releaseBody: ${{ steps.notes.outputs.body }}
           releaseDraft: false
           prerelease: false
