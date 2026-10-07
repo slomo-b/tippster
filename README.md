@@ -49,6 +49,45 @@ Grab the installer from the [latest release](../../releases/latest):
 | `Tippster_..._x64-setup.exe` | Windows installer, no admin needed |
 | `Tippster_..._x64_en-US.msi` | MSI for managed installs |
 
+### Windows SmartScreen
+
+Windows will say **"Windows protected your PC — unknown publisher"** the first time you
+run the installer. That is expected: the installer is not signed with a Windows
+code-signing certificate.
+
+Install it anyway, either way:
+
+- In the dialog: **More info → Run anyway**
+- Or clear the download flag first, then run it:
+
+  ```powershell
+  Unblock-File .\Tippster_2.0.6_x64-setup.exe
+  ```
+
+Why this is not simply "buy a certificate":
+
+| Option | Cost | Removes the warning? |
+|---|---|---|
+| No signature (today) | free | no — warns until the build has download history |
+| Azure Artifact Signing | ~$10/mo | only after reputation builds; **individuals eligible in the US and Canada only** |
+| OV certificate from a CA | ~$150–300/yr | only after reputation builds, and needs a hardware token |
+| EV certificate | ~$400+/yr | **not since 2024** — reputation still has to accumulate |
+| Self-signed | free | no — it blocks public users outright |
+| Microsoft Store (MSIX) | free | yes, the Store re-signs the package |
+
+Microsoft's own guidance is that SmartScreen reputation accrues per file hash, so the
+prompt fades as more people run the same build. A certificate shortens that but no longer
+skips it.
+
+To sign anyway, add two repository secrets and CI does the rest — nothing else changes:
+
+- `WINDOWS_CERTIFICATE` — the `.pfx` as base64 (`[Convert]::ToBase64String([IO.File]::ReadAllBytes('cert.pfx'))`)
+- `WINDOWS_CERTIFICATE_PASSWORD` — its password
+
+`scripts/set-thumbprint.mjs` writes the imported certificate's thumbprint into
+`tauri.conf.json` during the build, and stays a no-op when the secrets are absent.
+
+
 ## Development
 
 Requires Node 22+ and a Rust toolchain.

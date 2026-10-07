@@ -22,6 +22,17 @@ jobs:
           workspaces: src-tauri
       - run: npm ci
       - run: npm test
+      - name: Import the Windows code-signing certificate
+        if: ${{ secrets.WINDOWS_CERTIFICATE != '' }}
+        shell: pwsh
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP 'cert.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String("${{ secrets.WINDOWS_CERTIFICATE }}"))
+          $pw = ConvertTo-SecureString "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}" -Force -AsPlainText
+          $c = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $pw
+          "TAURI_WINDOWS_CERT_THUMBPRINT=$($c.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Sign the installers if a certificate is present
+        run: node scripts/set-thumbprint.mjs
       - name: Build Tippster and create the release
         uses: tauri-apps/tauri-action@v0
         env:
