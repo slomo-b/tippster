@@ -17,7 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0          # release notes need the tags and history behind them
+          fetch-depth: 0          # release notes need the history behind them
+          fetch-tags: true        # and the tags: checkout omits them by default, so the
+                                  # notes would fall back to the entire history
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -43,8 +45,10 @@ jobs:
         id: notes
         shell: bash
         run: |
-          prev=$(git tag --sort=-v:refname | grep -vx "$GITHUB_REF_NAME" | head -n1 || true)
+          # strip CR so a Windows checkout cannot break the tag comparison
+          prev=$(git tag --sort=-v:refname | tr -d '\r' | grep -vx "$GITHUB_REF_NAME" | head -n1 || true)
           if [ -n "$prev" ]; then range="$prev..HEAD"; else range="HEAD"; fi
+          echo "notes range: $range (previous tag: ${prev:-none})"
           out="$RUNNER_TEMP/notes.md"
           {
             echo "## Tippster $GITHUB_REF_NAME"
@@ -53,7 +57,7 @@ jobs:
             echo "development bottleneck."
             echo
             echo "### What changed"
-            git log --no-merges --pretty=format:'- %s'
+            git log --no-merges --pretty=format:'- %s' -n 40 "$range"
             echo
             echo
             echo "### Download"

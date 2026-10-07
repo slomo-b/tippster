@@ -78,4 +78,14 @@ describe('workflow files', () => {
       }
     }
   });
+
+  // The notes step needs the previous tag. actions/checkout omits tags unless asked,
+  // and without one the notes silently listed the entire history as "what changed".
+  test('the release checkout fetches tags, so the notes can find the previous release', () => {
+    const doc = parse(readFileSync('.github/workflows/release.yml', 'utf8'));
+    const checkout = doc.jobs.build.steps.find(s => String(s.uses || '').startsWith('actions/checkout'));
+    expect(checkout, 'no checkout step in the release job').toBeTruthy();
+    expect(checkout.with?.['fetch-tags'], 'release checkout must set fetch-tags: true').toBe(true);
+    expect(checkout.with?.['fetch-depth']).toBe(0);
+  });
 });
