@@ -31,8 +31,6 @@ export function clack(S, freq = 1600, gain = .05, ms = 34) {
     src.start();
   } catch (e) {}
 }
-export const sHit = (S) => clack(S, 1750, .045, 30);
-export const sErr = (S) => clack(S, 340, .07, 60);
 export const sLvl = (S) => {
   [0, 1, 2, 3, 4, 5].forEach(i => setTimeout(() => clack(S, 1300 + i * 120, .05, 28), i * 55));
 };

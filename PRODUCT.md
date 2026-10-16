@@ -49,6 +49,14 @@ race against the personal best; 30/60-second free typing test; per-key heatmap a
 history; JSON export/import of progress; signed auto-update; `prefers-reduced-motion`
 respected.
 
+Deliberate design, not an omission:
+- **No backspace correction.** A line is typed forward; a wrong key marks it and stays.
+  This is forced-accuracy (the app refuses half-done lines), unlike Monkeytype's
+  correctable modes.
+- **Every mode trains the engine.** Lessons, free typing and the daily race all feed
+  the per-key stats, so the heatmap and the adaptive generator learn from all practice,
+  not only from lessons.
+
 Undecided, must not be invented: whether the curriculum gains QWERTY/other-layout
 support and a non-German practice corpus. The stated direction (international) and the
 current corpus (German QWERTZ) disagree; this is a known open product decision, not a

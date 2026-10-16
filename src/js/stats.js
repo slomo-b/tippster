@@ -26,6 +26,12 @@ export function genText(li, LESSONS, keyStats) {
 }
 export function starsFor(acc, wpm) { let s = 1; if (acc >= 90) s = 2; if (acc >= 96 && wpm >= 12) s = 3; return s; }
 
+/** Accuracy as displayed text. 100% until the first keystroke — a fresh run must not
+ *  read as "0% accurate" before you typed anything. */
+export function accText(hits, errs) {
+  return (hits + errs ? Math.round(hits / (hits + errs) * 100) : 100) + '%';
+}
+
 // Keep WPM plausible: synthetic/instant typing must not create records.
 export const MAX_WPM = 250;
 export function clampWpm(w) {

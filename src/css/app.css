@@ -227,8 +227,8 @@ table.splits td.n{text-align:right;color:var(--phos)}
 }
 @media (max-height:700px){
   .key{height:34px}
-  .line,.pointer{font-size:16px}
-  .read .v{font-size:24px}
+  .line{font-size:16px}
+  .read b{font-size:18px}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms !important;transition-duration:.001ms !important}

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { weakKeys, starsFor, genText, clampWpm, MAX_WPM } from '../src/js/stats.js';
+import { weakKeys, starsFor, genText, clampWpm, MAX_WPM, accText } from '../src/js/stats.js';
 import { LESSONS } from '../src/js/lessons.js';
 
 describe('weakKeys', () => {
@@ -39,5 +39,15 @@ describe('genText', () => {
     const bossIndex = LESSONS.findIndex(l => l.keys === 'all');
     const t = genText(bossIndex, LESSONS, {});
     expect(LESSONS[bossIndex].words.some(w => t.includes(w))).toBe(true);
+  });
+});
+
+describe('accText', () => {
+  test('shows 100% before the first keystroke — never a lonely 0%', () => {
+    expect(accText(0, 0)).toBe('100%');
+  });
+  test('computes once there is data', () => {
+    expect(accText(98, 2)).toBe('98%');
+    expect(accText(1, 1)).toBe('50%');
   });
 });

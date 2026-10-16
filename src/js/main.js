@@ -3,10 +3,10 @@ import '@fontsource/sometype-mono/latin-700.css';
 import '@fontsource/vt323/latin-400.css';
 
 import { LESSONS, ROWS, WORDS } from './lessons.js';
-import { loadState, saveState, touchStreak, levelFor, unlockFor, resumeLesson } from './store.js';
-import { weakKeys, genText, starsFor, clampWpm } from './stats.js';
+import { loadState, saveState, touchStreak, levelFor, unlockFor, resumeLesson, localDay, isValidBackup, stateRecovered } from './store.js';
+import { weakKeys, genText, starsFor, clampWpm, accText } from './stats.js';
 import { recordKeystroke, lessonsToGoal, rollingAcc } from './adaptive.js';
-import { sHit, sErr, sLvl, clack } from './audio.js';
+import { sLvl, clack } from './audio.js';
 import { createField } from './field.js';
 import { bar, scramble, log, flash, RAMP } from './fx.js';
 import { startUpdateWatch } from './updater.js';
@@ -28,6 +28,15 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 let cur = 0, pos = 0, target = '', startT = 0, errs = 0, hits = 0, combo = 0, maxCombo = 0, done = false;
 let autoTimer = null;
 window._errAt = new Set();
+
+/* A mouse click must never leave focus behind on a button: on a real keyboard the
+   following Space would re-activate it (keyup = click) — restarting a timed run or
+   silently toggling "sound" while you type. Keyboard users are untouched: their
+   activation carries :focus-visible, so this only blurs pointer clicks. */
+document.addEventListener('pointerup', e => {
+  const b = e.target instanceof Element && e.target.closest('button');
+  if (b && !b.matches(':focus-visible')) b.blur();
+});
 
 function renderLine() {
   const el = $('line');
@@ -109,7 +118,7 @@ function updateRail() {
 function updateLive() {
   const mins = (Date.now() - startT) / 60000;
   $('cWpm').textContent = mins > .01 ? clampWpm((hits / 5) / mins) : 0;
-  $('cAcc').textContent = Math.round(hits / Math.max(1, hits + errs) * 100) + '%';
+  $('cAcc').textContent = accText(hits, errs);   // 100% until the first keystroke, never a lonely 0%
   const c = $('cCombo');
   const before = c.textContent;
   c.textContent = combo;
@@ -126,7 +135,9 @@ function updateQuest() {
 }
 
 /* ── achievements ──────────────────────────────────────────── */
-const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+// `localDay` comes from the store — the streak and every date the app writes must
+// agree on what "today" is, so this is never reimplemented here.
+const todayStr = localDay;
 const lessonsDone = () => Object.keys(S.lessonStars).length;
 function bossStats() {
   const idx = LESSONS.map((l, i) => ({ l, i })).filter(x => x.l.boss).map(x => x.i);
@@ -290,6 +301,7 @@ function renderHistory() {
 
 /* ── free typing ───────────────────────────────────────────── */
 let fT = null, fPos = 0, fTarget = '', fStart = 0, fHits = 0, fErr = 0, fSecs = 60, fRun = false;
+let fLastT = null;
 window._ferr = new Set();
 const freeGen = () => { let s = ''; for (let i = 0; i < 70; i++) s += WORDS[Math.floor(Math.random() * WORDS.length)] + ' '; return s.trim(); };
 function freeRender() {
@@ -307,21 +319,31 @@ function freeRender() {
 function freeKey(e) {
   if (!fRun || !fTarget || e.key.length !== 1) return;
   if (fPos >= fTarget.length) fTarget += ' ' + WORDS[Math.floor(Math.random() * WORDS.length)];
-  if (e.key === fTarget[fPos]) { fHits++; clack(S, 1750, .035, 24); field.pulse(.5); }
+  const now = Date.now();
+  const latency = fLastT ? now - fLastT : null;
+  fLastT = now;
+  const exp = fTarget[fPos];
+  const k = exp === ' ' ? ' ' : exp.toLowerCase();
+  const ok = e.key === exp;
+  // free practice trains the engine too: the heatmap and the weakest key must
+  // learn from every mode, not only from lessons
+  recordKeystroke(S.keyStats, k, ok, latency);
+  if (ok) { fHits++; clack(S, 1750, .035, 24); field.pulse(.5); }
   else { fErr++; window._ferr.add(fPos); clack(S, 300, .05, 50); field.tear(); }
   fPos++;
   freeRender();
   $('fwHits').textContent = fHits;
+  save();   // a run is minutes of work — the end-of-run flush must never be its only backup
 }
 $('freeStart').onclick = () => {
-  fTarget = freeGen(); fPos = 0; fHits = 0; fErr = 0; window._ferr = new Set(); fStart = Date.now(); fRun = true;
+  fTarget = freeGen(); fPos = 0; fHits = 0; fErr = 0; fLastT = null; window._ferr = new Set(); fStart = Date.now(); fRun = true;
   $('fwWpm').textContent = 0; $('fwAcc').textContent = '100%'; $('fwHits').textContent = 0;
   freeRender(); clearInterval(fT);
   fT = setInterval(() => {
     const el = Date.now() - fStart, left = Math.max(0, Math.ceil(fSecs - el / 1000)), mins = el / 60000;
     $('freeLeft').textContent = left + ' left';
     $('fwWpm').textContent = mins > .01 ? clampWpm((fHits / 5) / mins) : 0;
-    $('fwAcc').textContent = Math.round(fHits / Math.max(1, fHits + fErr) * 100) + '%';
+    $('fwAcc').textContent = accText(fHits, fErr);
     if (left <= 0) {
       clearInterval(fT); fRun = false;
       const w = clampWpm((fHits / 5) / Math.max(mins, .05));
@@ -344,6 +366,7 @@ document.querySelectorAll('[data-time]').forEach(b => b.onclick = () => {
 
 /* ── daily + ghost ─────────────────────────────────────────── */
 let dT = null, dTarget = '', dPos = 0, dHits = 0, dErr = 0, dStart = 0, dRun = false;
+let dLastT = null;
 window._derr = new Set();
 if (!S.daily || S.daily.date !== todayStr()) S.daily = { date: todayStr(), best: 0, last: 0 };
 const TRACK = 46;
@@ -374,23 +397,32 @@ function dailyTrack() {
 $('dailyStart').onclick = () => {
   if (S.daily.date !== todayStr()) S.daily = { date: todayStr(), best: 0, last: 0 };
   dTarget = dailyText(todayStr(), WORDS, 45);
-  dPos = 0; dHits = 0; dErr = 0; window._derr = new Set(); dStart = Date.now(); dRun = true;
+  dPos = 0; dHits = 0; dErr = 0; dLastT = null; window._derr = new Set(); dStart = Date.now(); dRun = true;
   $('dailyDate').textContent = todayStr();
   $('dailyBest').textContent = S.daily.best ? 'best ' + S.daily.best + ' wpm' : 'no run today';
   dailyRender(); dailyTrack(); clearInterval(dT);
   dT = setInterval(() => {
     const mins = (Date.now() - dStart) / 60000;
     $('dwWpm').textContent = mins > .01 ? clampWpm((dHits / 5) / mins) : 0;
-    $('dwAcc').textContent = Math.round(dHits / Math.max(1, dHits + dErr) * 100) + '%';
+    $('dwAcc').textContent = accText(dHits, dErr);
     dailyTrack();
   }, 160);
 };
 function dailyKey(e) {
   if (!dRun || e.key.length !== 1 || dPos >= dTarget.length) return;
-  if (e.key === dTarget[dPos]) { dHits++; clack(S, 1750, .035, 24); field.pulse(.6); }
+  const now = Date.now();
+  const latency = dLastT ? now - dLastT : null;
+  dLastT = now;
+  const exp = dTarget[dPos];
+  const k = exp === ' ' ? ' ' : exp.toLowerCase();
+  const ok = e.key === exp;
+  // the daily race trains the engine too
+  recordKeystroke(S.keyStats, k, ok, latency);
+  if (ok) { dHits++; clack(S, 1750, .035, 24); field.pulse(.6); }
   else { dErr++; window._derr.add(dPos); clack(S, 300, .05, 50); field.tear(); }
   dPos++;
   dailyRender();
+  save();   // same as free: persist what the race learned, not only at its end
   if (dPos >= dTarget.length) finishDaily();
 }
 function finishDaily() {
@@ -470,7 +502,7 @@ $('importFile').onchange = ev => {
   rd.onload = () => {
     try {
       const data = JSON.parse(rd.result);
-      if (typeof data !== 'object' || data === null || !('keyStats' in data)) throw new Error('not a Tippster backup');
+      if (!isValidBackup(data)) throw new Error('not a valid Tippster backup');
       localStorage.setItem('tippster_v1', JSON.stringify(data));
       location.reload();
     } catch (err) { alert('Import failed: ' + err.message); }
@@ -480,6 +512,7 @@ $('importFile').onchange = ev => {
 window.addEventListener('beforeunload', saveNow);
 
 /* ── init ──────────────────────────────────────────────────── */
+if (stateRecovered()) log('stored progress was unreadable — starting fresh');
 renderPath(); renderBadges(); renderHeat(); renderHistory();
 startLesson(resumeLesson(S.unlocked, LESSONS.length));
 updateRail(); updateQuest();

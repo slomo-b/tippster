@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { localDay, dayBefore, touchStreak, unlockFor, resumeLesson, loadState, replaceState } from '../src/js/store.js';
+import { localDay, dayBefore, touchStreak, unlockFor, resumeLesson, loadState, replaceState, safeParse, isValidBackup } from '../src/js/store.js';
 
 describe('localDay', () => {
   test('uses local time, not UTC', () => {
@@ -86,5 +86,38 @@ describe('shared state', () => {
     a.sound = false;
     expect(b.sound).toBe(false);
     a.sound = true;
+  });
+});
+
+describe('safeParse — a corrupt record must not brick the app', () => {
+  test('garbage parses to null instead of throwing', () => {
+    expect(safeParse('DESTROYED[][]')).toBe(null);
+    expect(safeParse('{"xp":90,"keyStats"')).toBe(null);
+    expect(safeParse('~')).toBe(null);
+  });
+  test('scalars are rejected, real objects pass', () => {
+    expect(safeParse('5')).toBe(null);
+    expect(safeParse('"str"')).toBe(null);
+    expect(safeParse('null')).toBe(null);
+    expect(safeParse('{"xp":90}')).toEqual({ xp: 90 });
+  });
+});
+
+describe('isValidBackup — the import gate', () => {
+  test('accepts what the app itself exports', () => {
+    expect(isValidBackup({
+      keyStats: { f: { tot: 5, err: 0, recent: [], lat: [] } },
+      lessonStars: { 0: 2 }, badges: [], history: [], xp: 3, stars: 2, unlocked: 2, sound: true
+    })).toBe(true);
+  });
+  test('rejects shapes that would brick the next boot', () => {
+    expect(isValidBackup({ keyStats: 'abc', badges: [] })).toBe(false);
+    expect(isValidBackup({ keyStats: ['x'], badges: [] })).toBe(false);
+    expect(isValidBackup({ keyStats: {}, badges: 'x' })).toBe(false);
+    expect(isValidBackup({ keyStats: {}, badges: [] })).toBe(false);   // lessonStars missing
+    expect(isValidBackup('not even an object')).toBe(false);
+  });
+  test('rejects scalar junk in numeric fields', () => {
+    expect(isValidBackup({ keyStats: {}, lessonStars: {}, badges: [], history: [], xp: 'vicious' })).toBe(false);
   });
 });
