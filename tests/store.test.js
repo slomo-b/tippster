@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { localDay, dayBefore, touchStreak, unlockFor, resumeLesson, loadState, replaceState, safeParse, isValidBackup } from '../src/js/store.js';
+import { localDay, dayBefore, touchStreak, unlockFor, resumeLesson, loadState, replaceState, safeParse, isValidBackup, switchLayout, dailyFor } from '../src/js/store.js';
 
 describe('localDay', () => {
   test('uses local time, not UTC', () => {
@@ -119,5 +119,49 @@ describe('isValidBackup — the import gate', () => {
   });
   test('rejects scalar junk in numeric fields', () => {
     expect(isValidBackup({ keyStats: {}, lessonStars: {}, badges: [], history: [], xp: 'vicious' })).toBe(false);
+  });
+});
+
+describe('two layouts, one user', () => {
+  test('switching parks the active progress and loads the target\'s', () => {
+    const S = {
+      layout: 'de', lessonStars: { 0: 2, 1: 3 }, unlocked: 3,
+      progress: { DE: { lessonStars: { 0: 2, 1: 3 }, unlocked: 3 }, EN: { lessonStars: {}, unlocked: 1 } },
+      daily: { de: { date: '2026-10-16', best: 41, last: 38 }, en: { date: '', best: 0, last: 0 } }
+    };
+    expect(switchLayout(S, 'en')).toBe(true);
+    expect(S.layout).toBe('en');
+    expect(S.unlocked).toBe(1);
+    expect(S.lessonStars).toEqual({});
+    expect(S.progress.DE.unlocked).toBe(3);   // parked, not lost
+    expect(dailyFor(S)).toEqual({ date: '', best: 0, last: 0 });   // the EN daily is its own race
+    expect(switchLayout(S, 'de')).toBe(true);
+    expect(S.unlocked).toBe(3);
+    expect(S.lessonStars).toEqual({ 0: 2, 1: 3 });
+    expect(S.progress.EN).toEqual({ lessonStars: {}, unlocked: 1 });   // nothing accumulated in EN
+  });
+  test('refuses the same and unknown layouts', () => {
+    const S = { layout: 'de' };
+    expect(switchLayout(S, 'de')).toBe(false);
+    expect(switchLayout(S, 'fr')).toBe(false);
+    expect(S.layout).toBe('de');
+  });
+  test('missing progress buckets are created on the fly', () => {
+    const S = { layout: 'de', lessonStars: {}, unlocked: 1, progress: {}, daily: {} };
+    expect(switchLayout(S, 'en')).toBe(true);
+    expect(S.progress.EN).toEqual({ lessonStars: {}, unlocked: 1 });
+    const d = dailyFor(S);
+    expect(d).toEqual({ date: '', best: 0, last: 0 });
+    expect(S.daily.en).toBe(d);
+  });
+  test('loadState on empty storage creates per-layout progress and daily', () => {
+    replaceState(null);
+    const S = loadState();
+    expect(S.layout).toBe('de');
+    expect(S.progress.DE).toEqual({ lessonStars: {}, unlocked: 1 });
+    expect(S.progress.EN).toEqual({ lessonStars: {}, unlocked: 1 });
+    expect(S.daily.de).toEqual({ date: '', best: 0, last: 0 });
+    expect(S.daily.en).toEqual({ date: '', best: 0, last: 0 });
+    replaceState(null);
   });
 });

@@ -1,9 +1,9 @@
-import '@fontsource/sometype-mono/latin-400.css';
+﻿import '@fontsource/sometype-mono/latin-400.css';
 import '@fontsource/sometype-mono/latin-700.css';
 import '@fontsource/vt323/latin-400.css';
 
-import { LESSONS, ROWS, WORDS } from './lessons.js';
-import { loadState, saveState, touchStreak, levelFor, unlockFor, resumeLesson, localDay, isValidBackup, stateRecovered } from './store.js';
+import { forLayout } from './lessons.js';
+import { loadState, saveState, touchStreak, levelFor, unlockFor, resumeLesson, localDay, isValidBackup, stateRecovered, switchLayout, dailyFor } from './store.js';
 import { weakKeys, genText, starsFor, clampWpm, accText } from './stats.js';
 import { recordKeystroke, lessonsToGoal, rollingAcc } from './adaptive.js';
 import { sLvl, clack } from './audio.js';
@@ -14,8 +14,14 @@ import { ACHIEVEMENTS, TOTAL_ACHIEVEMENTS, evaluate as evaluateAchievements, bui
 import { dailyText, ghostProgress } from './daily.js';
 
 const S = loadState();
+// The active curriculum: rows, lessons, word corpus and heatmap keys all come from
+// the layout the user picked. `LL` is only replaced by setLayout() below.
+let LL = forLayout(S.layout);
 let saveTimer = null;
-const saveNow = () => { if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; saveState(S); } };
+// Guaranteed write. A flush-only variant (write only when a debounce is pending)
+// loses end-of-work changes: e.g. a layout switch with nothing typed since the last
+// 400 ms tick would leave nothing on disk, and closing the tab would undo it.
+const saveNow = () => { if (saveTimer) clearTimeout(saveTimer); saveTimer = null; saveState(S); };
 const save = () => {
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => { saveTimer = null; saveState(S); }, 400);
@@ -24,13 +30,13 @@ const field = createField(document.getElementById('field'));
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-/* ── run state ─────────────────────────────────────────────── */
+/* â”€â”€ run state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let cur = 0, pos = 0, target = '', startT = 0, errs = 0, hits = 0, combo = 0, maxCombo = 0, done = false;
 let autoTimer = null;
 window._errAt = new Set();
 
 /* A mouse click must never leave focus behind on a button: on a real keyboard the
-   following Space would re-activate it (keyup = click) — restarting a timed run or
+   following Space would re-activate it (keyup = click) â€” restarting a timed run or
    silently toggling "sound" while you type. Keyboard users are untouched: their
    activation carries :focus-visible, so this only blurs pointer clicks. */
 document.addEventListener('pointerup', e => {
@@ -54,11 +60,11 @@ function renderLine() {
   $('linePct').textContent = Math.round(pct) + '%';
 }
 
-/* ── keys ──────────────────────────────────────────────────── */
+/* â”€â”€ keys â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function buildKeys() {
   const kf = $('keys');
   kf.textContent = '';
-  ROWS.forEach(r => {
+  LL.rows.forEach(r => {
     const row = document.createElement('div');
     row.className = 'krow';
     r.forEach(c => {
@@ -88,7 +94,7 @@ function paintKeys() {
   });
 }
 function activeKeys() {
-  const set = LESSONS[cur].keys === 'all' ? null : new Set(LESSONS[cur].keys.replace(/ /g, '').split(''));
+  const set = LL.lessons[cur].keys === 'all' ? null : new Set(LL.lessons[cur].keys.replace(/ /g, '').split(''));
   document.querySelectorAll('.key').forEach(k => {
     const c = k.id.slice(2);
     k.classList.toggle('dim', !!(set && c !== ' ' && !set.has(c)));
@@ -102,7 +108,7 @@ function markKey(c, ok) {
   setTimeout(() => el.classList.remove('hit', 'miss'), 170);
 }
 
-/* ── rail / readouts ───────────────────────────────────────── */
+/* â”€â”€ rail / readouts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const pad = n => String(n).padStart(2, '0');
 function updateRail() {
   const lv = levelFor(S.xp);
@@ -127,27 +133,27 @@ function updateLive() {
 }
 function updateQuest() {
   const w = weakKeys(S.keyStats);
-  const left = lessonsToGoal(S.keyStats, LESSONS[cur].keys);
+  const left = lessonsToGoal(S.keyStats, LL.lessons[cur].keys);
   $('cGoal').textContent = left === 0 ? 'done' : left + ' lines';
   $('quest').textContent = w.length
-    ? `weakest key “${w[0]}” at ${Math.round((1 - rollingAcc(S.keyStats[w[0]])) * 100)}% errors`
-    : 'a clean slate — start typing';
+    ? `weakest key â€œ${w[0]}â€ at ${Math.round((1 - rollingAcc(S.keyStats[w[0]])) * 100)}% errors`
+    : 'a clean slate â€” start typing';
 }
 
-/* ── achievements ──────────────────────────────────────────── */
-// `localDay` comes from the store — the streak and every date the app writes must
+/* â”€â”€ achievements â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+// `localDay` comes from the store â€” the streak and every date the app writes must
 // agree on what "today" is, so this is never reimplemented here.
 const todayStr = localDay;
 const lessonsDone = () => Object.keys(S.lessonStars).length;
 function bossStats() {
-  const idx = LESSONS.map((l, i) => ({ l, i })).filter(x => x.l.boss).map(x => x.i);
+  const idx = LL.lessons.map((l, i) => ({ l, i })).filter(x => x.l.boss).map(x => x.i);
   return { total: idx.length, done: idx.filter(i => S.lessonStars[i]).length };
 }
 function runAchievements({ wpm, acc, hits: h, isBoss = false, maxCombo: mc = 0 }) {
   const b = bossStats();
   const ctx = buildContext({
     wpm, acc, hits: h, maxCombo: mc, streak: S.streak.count, stars: S.stars, isBoss,
-    lessonsDone: lessonsDone(), lessonTotal: LESSONS.length, bossesDone: b.done, bossTotal: b.total
+    lessonsDone: lessonsDone(), lessonTotal: LL.lessons.length, bossesDone: b.done, bossTotal: b.total
   });
   const fresh = evaluateAchievements(ctx, S.badges);
   fresh.forEach(a => { S.badges.push(a.id); log('badge ' + a.label); });
@@ -165,21 +171,21 @@ function celebrateIfLevelUp(before) {
   }
 }
 
-/* ── lesson run ────────────────────────────────────────────── */
+/* â”€â”€ lesson run â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function startLesson(i) {
   if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
   cur = i; pos = 0; errs = 0; hits = 0; combo = 0; maxCombo = 0; done = false;
   window._errAt = new Set();
   window._lastKeyT = null;
   startT = Date.now();
-  target = genText(i, LESSONS, S.keyStats);
-  scramble($('lessonTitle'), `${i + 1}. ${LESSONS[i].t}`, 420);
-  $('lessonMeta').textContent = `${LESSONS[i].boss ? 'boss' : 'drill'} · ${LESSONS[i].keys === 'all' ? 'all keys' : LESSONS[i].keys.split('').join(' ')}`;
-  $('hint').textContent = LESSONS[i].d;
+  target = genText(i, LL.lessons, S.keyStats);
+  scramble($('lessonTitle'), `${i + 1}. ${LL.lessons[i].t}`, 420);
+  $('lessonMeta').textContent = `${LL.lessons[i].boss ? 'boss' : 'drill'} Â· ${LL.lessons[i].keys === 'all' ? 'all keys' : LL.lessons[i].keys.split('').join(' ')}`;
+  $('hint').textContent = LL.lessons[i].d;
   field.setEnergy(0);
   renderLine(); buildKeys(); paintKeys(); activeKeys();
   renderPath(); updateRail(); updateQuest(); updateLive();
-  $('fMsg').textContent = 'ready — start typing';
+  $('fMsg').textContent = 'ready â€” start typing';
 }
 
 document.addEventListener('keydown', e => {
@@ -224,13 +230,13 @@ function finishLesson() {
   const st = starsFor(acc, wpm);
   const lvlBefore = levelFor(S.xp);
   S.stars += st;
-  S.xp += 20 * st + (LESSONS[cur].boss ? 50 : 0);
+  S.xp += 20 * st + (LL.lessons[cur].boss ? 50 : 0);
   S.lessonStars[cur] = Math.max(S.lessonStars[cur] || 0, st);
-  S.unlocked = unlockFor(cur, S.unlocked, LESSONS.length);
-  S.history.unshift(`${todayStr()}  ${LESSONS[cur].t}  ${wpm} wpm  ${acc}%`);
+  S.unlocked = unlockFor(cur, S.unlocked, LL.lessons.length);
+  S.history.unshift(`${todayStr()}  ${LL.lessons[cur].t}  ${wpm} wpm  ${acc}%`);
   S.history = S.history.slice(0, 12);
   touchStreak(S);
-  runAchievements({ wpm, acc, hits, isBoss: !!LESSONS[cur].boss, maxCombo });
+  runAchievements({ wpm, acc, hits, isBoss: !!LL.lessons[cur].boss, maxCombo });
   saveNow(); updateRail(); renderPath(); renderBadges(); renderHeat(); paintKeys();
 
   field.bloom();
@@ -239,18 +245,18 @@ function finishLesson() {
   scramble(el, answer, 620);
   $('banner').hidden = false;
   setTimeout(() => { $('banner').hidden = true; }, 1700);
-  $('fMsg').textContent = `${wpm} wpm · ${acc}% · combo ${maxCombo} · ${'*'.repeat(st)}`;
-  log(`${answer} — ${wpm} wpm at ${acc}%, best combo ${maxCombo}`);
+  $('fMsg').textContent = `${wpm} wpm Â· ${acc}% Â· combo ${maxCombo} Â· ${'*'.repeat(st)}`;
+  log(`${answer} â€” ${wpm} wpm at ${acc}%, best combo ${maxCombo}`);
 
   celebrateIfLevelUp(lvlBefore);
-  autoTimer = setTimeout(() => startLesson(cur + 1 < LESSONS.length ? cur + 1 : cur), 1900);
+  autoTimer = setTimeout(() => startLesson(cur + 1 < LL.lessons.length ? cur + 1 : cur), 1900);
 }
 
-/* ── path / badges / heat ──────────────────────────────────── */
+/* â”€â”€ path / badges / heat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function renderPath() {
   const el = $('path');
   el.textContent = '';
-  LESSONS.forEach((L, i) => {
+  LL.lessons.forEach((L, i) => {
     const b = document.createElement('button');
     b.disabled = i >= S.unlocked;
     b.setAttribute('aria-current', String(i === cur));
@@ -259,7 +265,7 @@ function renderPath() {
     if (!b.disabled) b.onclick = () => startLesson(i);
     el.appendChild(b);
   });
-  $('pathMeta').textContent = `${lessonsDone()}/${LESSONS.length}`;
+  $('pathMeta').textContent = `${lessonsDone()}/${LL.lessons.length}`;
 }
 function badgeHTML() {
   const on = new Set(S.badges);
@@ -274,7 +280,7 @@ function renderBadges() {
 function renderHeat() {
   const el = $('heat');
   el.textContent = '';
-  'abcdefghijklmnopqrstuvwxyzäöüß,. -'.split('').forEach(k => {
+  LL.heat.split('').forEach(k => {
     const v = S.keyStats[k];
     const r = v && v.tot > 2 ? v.err / v.tot : 0;
     const d = document.createElement('div');
@@ -299,11 +305,11 @@ function renderHistory() {
     : '<span class="no">no lines yet</span>';
 }
 
-/* ── free typing ───────────────────────────────────────────── */
+/* â”€â”€ free typing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let fT = null, fPos = 0, fTarget = '', fStart = 0, fHits = 0, fErr = 0, fSecs = 60, fRun = false;
 let fLastT = null;
 window._ferr = new Set();
-const freeGen = () => { let s = ''; for (let i = 0; i < 70; i++) s += WORDS[Math.floor(Math.random() * WORDS.length)] + ' '; return s.trim(); };
+const freeGen = () => { let s = ''; for (let i = 0; i < 70; i++) s += LL.words[Math.floor(Math.random() * LL.words.length)] + ' '; return s.trim(); };
 function freeRender() {
   const el = $('freeLine');
   const frag = document.createDocumentFragment();
@@ -318,7 +324,7 @@ function freeRender() {
 }
 function freeKey(e) {
   if (!fRun || !fTarget || e.key.length !== 1) return;
-  if (fPos >= fTarget.length) fTarget += ' ' + WORDS[Math.floor(Math.random() * WORDS.length)];
+  if (fPos >= fTarget.length) fTarget += ' ' + LL.words[Math.floor(Math.random() * LL.words.length)];
   const now = Date.now();
   const latency = fLastT ? now - fLastT : null;
   fLastT = now;
@@ -333,7 +339,7 @@ function freeKey(e) {
   fPos++;
   freeRender();
   $('fwHits').textContent = fHits;
-  save();   // a run is minutes of work — the end-of-run flush must never be its only backup
+  save();   // a run is minutes of work â€” the end-of-run flush must never be its only backup
 }
 $('freeStart').onclick = () => {
   fTarget = freeGen(); fPos = 0; fHits = 0; fErr = 0; fLastT = null; window._ferr = new Set(); fStart = Date.now(); fRun = true;
@@ -354,7 +360,7 @@ $('freeStart').onclick = () => {
       runAchievements({ wpm: w, acc: Math.round(acc * 100), hits: fHits });
       saveNow(); updateRail(); renderBadges(); paintKeys();
       celebrateIfLevelUp(lvlBefore);
-      log(earned ? `${w} wpm at ${Math.round(acc * 100)}% — +${earned} xp` : 'too little typed for xp');
+      log(earned ? `${w} wpm at ${Math.round(acc * 100)}% â€” +${earned} xp` : 'too little typed for xp');
     }
   }, 220);
 };
@@ -364,15 +370,22 @@ document.querySelectorAll('[data-time]').forEach(b => b.onclick = () => {
   $('freeLeft').textContent = fSecs + ' left';
 });
 
-/* ── daily + ghost ─────────────────────────────────────────── */
+/* â”€â”€ daily + ghost â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let dT = null, dTarget = '', dPos = 0, dHits = 0, dErr = 0, dStart = 0, dRun = false;
 let dLastT = null;
 window._derr = new Set();
-if (!S.daily || S.daily.date !== todayStr()) S.daily = { date: todayStr(), best: 0, last: 0 };
+// The daily challenge is per layout: a German ghost racing an English run would lie.
+// The best/ghost only compares runs over the same corpus.
+const resetDaily = () => {
+  const d = dailyFor(S);
+  if (d.date !== todayStr()) Object.assign(d, { date: todayStr(), best: 0, last: 0 });
+  return d;
+};
+resetDaily();
 const TRACK = 46;
 function dailyRender() {
   const el = $('dailyLine');
-  if (!dTarget) { el.innerHTML = '<span class="todo">press run — the text for ' + todayStr() + '</span>'; return; }
+  if (!dTarget) { el.innerHTML = '<span class="todo">press run â€” the text for ' + todayStr() + '</span>'; return; }
   const frag = document.createDocumentFragment();
   for (let i = 0; i < dTarget.length; i++) {
     const sp = document.createElement('span');
@@ -385,7 +398,7 @@ function dailyRender() {
 }
 function dailyTrack() {
   const len = dTarget.length || 1;
-  const best = S.daily.best || 0;
+  const best = dailyFor(S).best || 0;
   const g = best && dStart ? ghostProgress(Date.now() - dStart, best, len) : 0;
   const mine = dStart ? dPos / len : 0;
   const col = v => Math.max(0, Math.min(TRACK - 1, Math.round(v * (TRACK - 1))));
@@ -395,11 +408,11 @@ function dailyTrack() {
   $('dwGhost').textContent = best;
 }
 $('dailyStart').onclick = () => {
-  if (S.daily.date !== todayStr()) S.daily = { date: todayStr(), best: 0, last: 0 };
-  dTarget = dailyText(todayStr(), WORDS, 45);
+  const D = resetDaily();
+  dTarget = dailyText(todayStr(), LL.words, 45);
   dPos = 0; dHits = 0; dErr = 0; dLastT = null; window._derr = new Set(); dStart = Date.now(); dRun = true;
   $('dailyDate').textContent = todayStr();
-  $('dailyBest').textContent = S.daily.best ? 'best ' + S.daily.best + ' wpm' : 'no run today';
+  $('dailyBest').textContent = D.best ? 'best ' + D.best + ' wpm' : 'no run today';
   dailyRender(); dailyTrack(); clearInterval(dT);
   dT = setInterval(() => {
     const mins = (Date.now() - dStart) / 60000;
@@ -430,25 +443,26 @@ function finishDaily() {
   const mins = (Date.now() - dStart) / 60000;
   const wpm = clampWpm((dHits / 5) / Math.max(mins, .05));
   const acc = Math.round(dHits / Math.max(1, dHits + dErr) * 100);
-  const prev = S.daily.best;
+  const D = resetDaily();
+  const prev = D.best;
   const record = wpm > prev;
-  if (record) S.daily.best = wpm;
-  S.daily.last = wpm;
+  if (record) D.best = wpm;
+  D.last = wpm;
   const earned = Math.round(Math.min(wpm, 120) * (acc / 100));
   const lvlBefore = levelFor(S.xp);
   S.xp += earned; touchStreak(S);
   runAchievements({ wpm, acc, hits: dHits });
   saveNow(); updateRail(); renderBadges();
-  $('dailyBest').textContent = 'best ' + S.daily.best + ' wpm';
+  $('dailyBest').textContent = 'best ' + D.best + ' wpm';
   $('dailyQuest').textContent = record
-    ? `new best today: ${wpm} wpm at ${acc}% — +${earned} xp`
-    : `${wpm} wpm at ${acc}% against a ghost of ${prev} — +${earned} xp`;
+    ? `new best today: ${wpm} wpm at ${acc}% â€” +${earned} xp`
+    : `${wpm} wpm at ${acc}% against a ghost of ${prev} â€” +${earned} xp`;
   if (record) { field.bloom(); const el = $('bannerText'); scramble(el, 'record', 600); $('banner').hidden = false; setTimeout(() => { $('banner').hidden = true; }, 1600); }
   celebrateIfLevelUp(lvlBefore);
-  log(record ? `new daily best — ${wpm} wpm` : `daily run — ${wpm} wpm`);
+  log(record ? `new daily best â€” ${wpm} wpm` : `daily run â€” ${wpm} wpm`);
 }
 
-/* ── tabs ──────────────────────────────────────────────────── */
+/* â”€â”€ tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const tabList = [...document.querySelectorAll('.tab')];
 function selectTab(t) {
   tabList.forEach(x => {
@@ -478,12 +492,12 @@ tabList.forEach((t, i) => {
   };
 });
 
-/* ── controls ──────────────────────────────────────────────── */
+/* â”€â”€ controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 $('newLine').onclick = () => startLesson(cur);
 $('skipLine').onclick = () => {
-  S.unlocked = unlockFor(cur, S.unlocked, LESSONS.length);
+  S.unlocked = unlockFor(cur, S.unlocked, LL.lessons.length);
   save();
-  if (cur + 1 < LESSONS.length) startLesson(cur + 1);
+  if (cur + 1 < LL.lessons.length) startLesson(cur + 1);
 };
 $('soundBtn').onclick = () => { S.sound = !S.sound; saveNow(); updateRail(); };
 $('resetBtn').onclick = () => { if (confirm('Wipe all progress?')) { localStorage.removeItem('tippster_v1'); location.reload(); } };
@@ -511,12 +525,36 @@ $('importFile').onchange = ev => {
 };
 window.addEventListener('beforeunload', saveNow);
 
-/* ── init ──────────────────────────────────────────────────── */
-if (stateRecovered()) log('stored progress was unreadable — starting fresh');
+/* â”€â”€ layout switch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+const freeIdleHTML = () =>
+  `<span class="todo">press run â€” 60 seconds of ${S.layout === 'en' ? 'english' : 'german'} practice words</span>`;
+function paintLayoutButtons() {
+  $('layoutDe').setAttribute('aria-pressed', String(S.layout === 'de'));
+  $('layoutEn').setAttribute('aria-pressed', String(S.layout === 'en'));
+}
+function setLayout(l) {
+  if (!switchLayout(S, l)) return;
+  LL = forLayout(S.layout);
+  if (fRun) { clearInterval(fT); fRun = false; }
+  if (dRun) { clearInterval(dT); dRun = false; }
+  $('freeLine').innerHTML = freeIdleHTML();
+  dailyRender();
+  paintLayoutButtons();
+  startLesson(resumeLesson(S.unlocked, LL.lessons.length));
+  renderHeat(); renderBadges(); renderHistory();
+  saveNow();
+  log('layout: ' + LL.label);
+}
+$('layoutDe').onclick = () => setLayout('de');
+$('layoutEn').onclick = () => setLayout('en');
+paintLayoutButtons();
+
+/* â”€â”€ init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+if (stateRecovered()) log('stored progress was unreadable â€” starting fresh');
 renderPath(); renderBadges(); renderHeat(); renderHistory();
-startLesson(resumeLesson(S.unlocked, LESSONS.length));
+startLesson(resumeLesson(S.unlocked, LL.lessons.length));
 updateRail(); updateQuest();
-$('freeLine').innerHTML = '<span class="todo">press run — 60 seconds of german practice words</span>';
+$('freeLine').innerHTML = freeIdleHTML();
 dailyRender();
 save();
 startUpdateWatch();

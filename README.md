@@ -4,7 +4,7 @@
 learn typing — because if your typing is the development bottleneck, no amount of
 AI autocomplete will fix your 30 WPM.
 
-Runs as a Windows desktop app (Tauri v2) and in the browser. German QWERTZ layout.
+Runs as a Windows desktop app (Tauri v2) and in the browser. German QWERTZ and English QWERTY curricula, switched in the src tab.
 
 ```
 5 minutes a day beats 2 hours on Sunday.
@@ -23,7 +23,7 @@ Runs as a Windows desktop app (Tauri v2) and in the browser. German QWERTZ layou
 
 ## Features
 
-- **12 lessons** in a proven order: `F J → D K → S L → A Ö → G H → Ä → R U → E I →
+- **12 lessons** per layout in a proven order: `F J → D K → S L → A Ö/; → G H → home row → R U → E I →
   W O → Q P T Z Ü → bottom row → final boss`, with boss fights along the way.
 - **Adaptive engine** — rolling accuracy (last 30 keystrokes) + per-key latency,
   weakest keys over-weighted, plus a "how many lessons to your goal" estimate.
@@ -194,8 +194,9 @@ npx tauri icon icon-source.png      # writes src-tauri/icons/*
 
 ## Notes
 
-- The practice corpus is German on purpose: it is what exercises `ö ä ü ß` and
-  the QWERTZ layout. The interface is English.
+- The practice corpus follows the layout, both on purpose. QWERTZ ships with German
+  words (that is what exercises `ö ä ü ß`); QWERTY ships with English. Switch in the
+  src tab. The interface is English.
 - Progress is stored locally by the app. Use export/import to back it up.
 
 ## Built on ideas from

@@ -144,6 +144,7 @@ body{
 .btn:hover{background:var(--phos);color:var(--void)}
 .btn.primary{border-color:var(--phos);background:var(--phos);color:var(--void)}
 .btn.primary:hover{background:none;color:var(--phos)}
+.btn[aria-pressed="true"]{border-color:var(--phos);background:var(--phos);color:var(--void)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .btn:disabled:hover{background:none;color:var(--phos)}
 

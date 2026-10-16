@@ -49,6 +49,12 @@ race against the personal best; 30/60-second free typing test; per-key heatmap a
 history; JSON export/import of progress; signed auto-update; `prefers-reduced-motion`
 respected.
 
+Two curricula, switchable in the src tab: **German QWERTZ** (the original, with ö ä ü
+ß and a German practice corpus) and **English QWERTY** (mirrored lesson order, English
+corpus, `;` as the pinky key). Lesson progress, unlocking and the daily ghost are kept
+per layout; XP, stars, streak, badges and per-key stats are shared — they belong to the
+physical keys, not to a curriculum.
+
 Deliberate design, not an omission:
 - **No backspace correction.** A line is typed forward; a wrong key marks it and stays.
   This is forced-accuracy (the app refuses half-done lines), unlike Monkeytype's
@@ -57,10 +63,9 @@ Deliberate design, not an omission:
   the per-key stats, so the heatmap and the adaptive generator learn from all practice,
   not only from lessons.
 
-Undecided, must not be invented: whether the curriculum gains QWERTY/other-layout
-support and a non-German practice corpus. The stated direction (international) and the
-current corpus (German QWERTZ) disagree; this is a known open product decision, not a
-bug to silently paper over.
+Undecided, must not be invented: further layouts (AZERTY, Dvorak, …) and non-German/
+non-English corpora. The two shipped layouts are committed; a third would be a new
+product decision.
 
 ## Brand Commitments
 

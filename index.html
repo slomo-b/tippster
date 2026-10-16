@@ -88,7 +88,7 @@
     </div>
     <aside class="side">
       <div class="h-row"><h2 class="h">why this works</h2></div>
-      <p class="note">Live speed and accuracy after Monkeytype; the weakest key is over-weighted after Keybr; streak mercy after Duolingo. The practice words are German on purpose — they exercise <b>ö ä ü ß</b> on QWERTZ.</p>
+      <p class="note">Live speed and accuracy after Monkeytype; the weakest key is over-weighted after Keybr; streak mercy after Duolingo. The corpus follows your layout — German <b>ö ä ü ß</b> on QWERTZ, English on QWERTY. Switch in the <b>src</b> tab.</p>
     </aside>
   </section>
 
@@ -158,6 +158,12 @@
     <aside class="side">
       <div class="h-row"><h2 class="h">runs offline</h2></div>
       <p class="note">Fonts, sound and the live field are bundled. No account, no network, progress on your machine.</p>
+      <div class="h-row sep"><h2 class="h">layout</h2></div>
+      <p class="note">Keyboard and practice corpus switch together: QWERTZ with German words, QWERTY with English. Lesson progress and the daily ghost are kept per layout; streak and XP are shared.</p>
+      <div class="ctl">
+        <button class="btn" id="layoutDe" aria-pressed="false">german · qwertz</button>
+        <button class="btn" id="layoutEn" aria-pressed="false">english · qwerty</button>
+      </div>
       <div class="h-row sep"><h2 class="h">updates</h2></div>
       <p class="note">Updates install themselves at your next pause — they never interrupt a line. Untick to be asked instead.</p>
       <label class="chk"><input type="checkbox" id="autoUpdate"> install updates automatically</label>
